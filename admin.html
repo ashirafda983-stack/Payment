@@ -50,8 +50,8 @@
             <button class="nav-btn" onclick="location.href='second.html'"><i class="fas fa-tasks"></i> MANAGER PANEL</button>
             <button id="resellerBtn" class="nav-btn" style="background:#e67e22; color:white; display:none;" onclick="toggleResellerSection()"><i class="fas fa-users"></i> RESELLERS</button>
         </div>
-    </div>
-    <div class="card">
+        </div>
+            <div class="card">
         <h3 style="color: var(--accent);"><i class="fas fa-bell"></i> Push Notification (FCM)</h3>
         <input type="text" id="fcmTitle" placeholder="Notification Title">
         <textarea id="fcmBody" rows="2" placeholder="Message content..."></textarea>
@@ -95,12 +95,12 @@
         <hr style="border:0.5px solid #2d3748; margin:20px 0;">
         <h3>2. Details</h3>
         <input type="hidden" id="editId">
-        <label>Title</label><input type="text" id="title">
-        <label>Overview</label><textarea id="overview" rows="3"></textarea>
-        <label>Cast Actors</label><input type="text" id="cast">
+        <label>Title</label><input type="text" id="title" oninput="saveDraft()">
+        <label>Overview</label><textarea id="overview" rows="3" oninput="saveDraft()"></textarea>
+        <label>Cast Actors</label><input type="text" id="cast" oninput="saveDraft()">
         <div style="display:flex; gap:10px;">
             <div style="flex:1;"><label>VJ Name</label>
-                <select id="vj">
+                <select id="vj" onchange="saveDraft()">
                     <option value="Vj Junior">Vj Junior</option>
                     <option value="Vj Mk">Vj Mk</option>
                     <option value="Vj Emmy">Vj Emmy</option>
@@ -154,16 +154,16 @@
                     <option value="Vj CB">Vj CB</option>  
                 </select>
             </div>
-            <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured"> Show in Banner</div></div>
+            <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured" onchange="saveDraft()"> Show in Banner</div></div>
         </div>
         <div style="display:flex; gap:10px;">
-            <div style="flex:1;"><label>VJ Category/Genre (Auto-filled)</label><input type="text" id="vj_genre" placeholder="Genre from Old DB"></div>
+            <div style="flex:1;"><label>VJ Category/Genre (Auto-filled)</label><input type="text" id="vj_genre" placeholder="Genre from Old DB" oninput="saveDraft()"></div>
         </div>
-        <label>Movie Logo URL (Auto-fetched)</label><input type="text" id="logo">
-        <label>Trailer URL (Auto-fetched)</label><input type="text" id="trailer">
-        <label>Poster URL</label><input type="text" id="poster">
-        <label>Banner URL</label><input type="text" id="banner">
-        <div id="movieLinkDiv"><label>Movie Play Link</label><input type="text" id="movieLink"></div>
+        <label>Movie Logo URL (Auto-fetched)</label><input type="text" id="logo" oninput="saveDraft()">
+        <label>Trailer URL (Auto-fetched)</label><input type="text" id="trailer" oninput="saveDraft()">
+        <label>Poster URL</label><input type="text" id="poster" oninput="saveDraft()">
+        <label>Banner URL</label><input type="text" id="banner" oninput="saveDraft()">
+        <div id="movieLinkDiv"><label>Movie Play Link</label><input type="text" id="movieLink" oninput="saveDraft()"></div>
         <div id="seriesDiv" style="display:none;">
             <label>Auto-Fetched Episodes (All Seasons)</label>
             <div id="epList"></div>
@@ -180,7 +180,7 @@
         <div id="fullOldDbList">Loading movies...</div>
     </div>
     </div>
-         <script>
+             <script>
     const firebaseConfig = { 
         apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
         authDomain: "leoxtream-46cdf.firebaseapp.com", 
@@ -204,7 +204,51 @@
         loadRequests();
         loadFullOldDbList();
         loadUsers();
+        checkDraft();
     };
+
+    function saveDraft() {
+        const draft = {
+            title: document.getElementById('title').value,
+            overview: document.getElementById('overview').value,
+            cast: document.getElementById('cast').value,
+            vj: document.getElementById('vj').value,
+            vj_genre: document.getElementById('vj_genre').value,
+            logo: document.getElementById('logo').value,
+            trailer: document.getElementById('trailer').value,
+            poster: document.getElementById('poster').value,
+            banner: document.getElementById('banner').value,
+            movieLink: document.getElementById('movieLink').value,
+            searchType: searchType,
+            isFeatured: document.getElementById('isFeatured').checked
+        };
+        localStorage.setItem('leoxtream_draft', JSON.stringify(draft));
+    }
+
+    function checkDraft() {
+        const saved = localStorage.getItem('leoxtream_draft');
+        if(saved) {
+            const data = JSON.parse(saved);
+            if(data.title || data.movieLink) {
+                if(confirm("You have unsaved progress. Would you like to restore it?")) {
+                    setType(data.searchType || 'movie');
+                    document.getElementById('title').value = data.title || "";
+                    document.getElementById('overview').value = data.overview || "";
+                    document.getElementById('cast').value = data.cast || "";
+                    document.getElementById('vj').value = data.vj || "";
+                    document.getElementById('vj_genre').value = data.vj_genre || "";
+                    document.getElementById('logo').value = data.logo || "";
+                    document.getElementById('trailer').value = data.trailer || "";
+                    document.getElementById('poster').value = data.poster || "";
+                    document.getElementById('banner').value = data.banner || "";
+                    document.getElementById('movieLink').value = data.movieLink || "";
+                    document.getElementById('isFeatured').checked = data.isFeatured || false;
+                } else {
+                    localStorage.removeItem('leoxtream_draft');
+                }
+            }
+        }
+    }
 
     async function searchPearlSource() {
         const query = document.getElementById('tmdbInput').value;
@@ -232,6 +276,7 @@
                         let link = m.play_url || m.download_url || m.link;
                         if(link) link = link.replace('/d/', '/e/').replace('download', 'play');
                         document.getElementById('movieLink').value = link || "";
+                        saveDraft();
                         alert("Movie data and Play Link imported successfully!");
                         resultsDiv.style.display = 'none';
                     };
@@ -338,7 +383,7 @@
 
     const categories = ["Newly Added", "Top Rated", "Action", "Adventure", "Animations", "Comedy", "Crime", "Drama", "Fantasy", "Horror", "Romance", "Sci-Fi", "TV Show", "Thriller", "Series", "Leo Likes"];
     const catGrid = document.getElementById('catGrid');
-    categories.forEach(c => { catGrid.innerHTML += `<div class="cat-item"><input type="checkbox" class="genre-check" value="${c}"> ${c}</div>`; });
+    categories.forEach(c => { catGrid.innerHTML += `<div class="cat-item"><input type="checkbox" class="genre-check" value="${c}" onchange="saveDraft()"> ${c}</div>`; });
 
     function setType(t) { 
         searchType = t; 
@@ -347,9 +392,9 @@
         document.getElementById('seriesDiv').style.display = t === 'tv' ? 'block' : 'none';
         document.getElementById('movieLinkDiv').style.display = t === 'movie' ? 'block' : 'none';
         loadFullOldDbList();
+        saveDraft();
     }
-
-    function resetForm() {
+                function resetForm() {
         document.getElementById('editId').value = '';
         document.getElementById('title').value = '';
         document.getElementById('overview').value = '';
@@ -365,6 +410,7 @@
         document.getElementById('isFeatured').checked = false;
         currentCastList = [];
         document.querySelectorAll('.genre-check').forEach(cb => cb.checked = false);
+        localStorage.removeItem('leoxtream_draft');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -448,19 +494,20 @@
                         epData.Episodes.forEach((ep, index) => {
                             const epNum = `S${seasonNum} EPS ${index + 1}`;
                             const div = document.createElement('div'); div.className = 'ep-box';
-                            div.innerHTML = `<label>${epNum}</label><input type="text" class="ep-link-input" data-title="${epNum}" data-img="${data.Poster || data.poster || ''}" value="${ep.link}">`;
+                            div.innerHTML = `<label>${epNum}</label><input type="text" class="ep-link-input" data-title="${epNum}" data-img="${data.Poster || data.poster || ''}" value="${ep.link}" oninput="saveDraft()">`;
                             epList.appendChild(div);
                         });
+                        saveDraft();
                         alert("Links auto-filled successfully!");
                     } else { epList.innerHTML = 'No episodes found.'; }
                 });
             }
         }
         document.getElementById('oldDbResults').style.display = 'none';
+        saveDraft();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-         </script>
-    <script>
+
     async function selectItem(id, m) {
         document.getElementById('title').value = m.title || m.name;
         document.getElementById('overview').value = m.overview;
@@ -504,7 +551,7 @@
                             <img src="${epImg}" style="width:60px; height:40px; border-radius:4px; object-fit:cover;">
                             <div style="flex:1;">
                                 <strong>${epTitle}</strong>
-                                <input type="text" class="ep-link-input" data-title="${epTitle}" data-img="${epImg}" placeholder="Paste link for this episode">
+                                <input type="text" class="ep-link-input" data-title="${epTitle}" data-img="${epImg}" placeholder="Paste link for this episode" oninput="saveDraft()">
                             </div>
                         </div>`;
                     epList.appendChild(div);
@@ -512,6 +559,7 @@
             }
             document.getElementById('loadingOverlay').style.display = 'none';
         }
+        saveDraft();
     }
 
     async function saveData() {
@@ -556,6 +604,7 @@
         };
         if (docId) await db.collection("movies").doc(docId).set(payload, { merge: true });
         else await db.collection("movies").add(payload);
+        localStorage.removeItem('leoxtream_draft');
         alert("Upload Successful!");
         location.reload();
     }
