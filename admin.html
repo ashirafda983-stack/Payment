@@ -179,8 +179,8 @@
         <h3>Old Database Movies List</h3>
         <div id="fullOldDbList">Loading movies...</div>
     </div>
-    </div>
-             <script>
+                        </div>
+                        <script>
     const firebaseConfig = { 
         apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
         authDomain: "leoxtream-46cdf.firebaseapp.com", 
@@ -208,6 +208,14 @@
     };
 
     function saveDraft() {
+        let episodes = [];
+        document.querySelectorAll('.ep-link-input').forEach(input => {
+            episodes.push({
+                title: input.getAttribute('data-title'),
+                img: input.getAttribute('data-img'),
+                link: input.value
+            });
+        });
         const draft = {
             title: document.getElementById('title').value,
             overview: document.getElementById('overview').value,
@@ -220,16 +228,18 @@
             banner: document.getElementById('banner').value,
             movieLink: document.getElementById('movieLink').value,
             searchType: searchType,
-            isFeatured: document.getElementById('isFeatured').checked
+            isFeatured: document.getElementById('isFeatured').checked,
+            episodes: episodes,
+            categories: Array.from(document.querySelectorAll('.genre-check:checked')).map(c => c.value)
         };
-        localStorage.setItem('leoxtream_draft', JSON.stringify(draft));
+        localStorage.setItem('leoxtream_admin_backup', JSON.stringify(draft));
     }
 
     function checkDraft() {
-        const saved = localStorage.getItem('leoxtream_draft');
+        const saved = localStorage.getItem('leoxtream_admin_backup');
         if(saved) {
             const data = JSON.parse(saved);
-            if(data.title || data.movieLink) {
+            if(data.title || data.movieLink || (data.episodes && data.episodes.length > 0)) {
                 if(confirm("You have unsaved progress. Would you like to restore it?")) {
                     setType(data.searchType || 'movie');
                     document.getElementById('title').value = data.title || "";
@@ -243,9 +253,30 @@
                     document.getElementById('banner').value = data.banner || "";
                     document.getElementById('movieLink').value = data.movieLink || "";
                     document.getElementById('isFeatured').checked = data.isFeatured || false;
-                } else {
-                    localStorage.removeItem('leoxtream_draft');
-                }
+                    if(data.categories) {
+                        data.categories.forEach(cat => {
+                            const cb = document.querySelector(`.genre-check[value="${cat}"]`);
+                            if(cb) cb.checked = true;
+                        });
+                    }
+                    if(data.searchType === 'tv' && data.episodes) {
+                        const epList = document.getElementById('epList');
+                        epList.innerHTML = '';
+                        data.episodes.forEach(ep => {
+                            const div = document.createElement('div');
+                            div.className = 'ep-box';
+                            div.innerHTML = `
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <img src="${ep.img}" style="width:60px; height:40px; border-radius:4px; object-fit:cover;">
+                                    <div style="flex:1;">
+                                        <strong>${ep.title}</strong>
+                                        <input type="text" class="ep-link-input" data-title="${ep.title}" data-img="${ep.img}" value="${ep.link}" oninput="saveDraft()">
+                                    </div>
+                                </div>`;
+                            epList.appendChild(div);
+                        });
+                    }
+                } else { localStorage.removeItem('leoxtream_admin_backup'); }
             }
         }
     }
@@ -394,7 +425,9 @@
         loadFullOldDbList();
         saveDraft();
     }
-                function resetForm() {
+                        </script>
+                        <script>
+    function resetForm() {
         document.getElementById('editId').value = '';
         document.getElementById('title').value = '';
         document.getElementById('overview').value = '';
@@ -410,7 +443,7 @@
         document.getElementById('isFeatured').checked = false;
         currentCastList = [];
         document.querySelectorAll('.genre-check').forEach(cb => cb.checked = false);
-        localStorage.removeItem('leoxtream_draft');
+        localStorage.removeItem('leoxtream_admin_backup');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -604,7 +637,7 @@
         };
         if (docId) await db.collection("movies").doc(docId).set(payload, { merge: true });
         else await db.collection("movies").add(payload);
-        localStorage.removeItem('leoxtream_draft');
+        localStorage.removeItem('leoxtream_admin_backup');
         alert("Upload Successful!");
         location.reload();
     }
