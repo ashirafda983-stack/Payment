@@ -179,8 +179,8 @@
         <h3>Old Database Movies List</h3>
         <div id="fullOldDbList">Loading movies...</div>
     </div>
-                        </div>
-                        <script>
+    </div>
+    <script>
     const firebaseConfig = { 
         apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
         authDomain: "leoxtream-46cdf.firebaseapp.com", 
@@ -220,6 +220,7 @@
             title: document.getElementById('title').value,
             overview: document.getElementById('overview').value,
             cast: document.getElementById('cast').value,
+            castList: currentCastList,
             vj: document.getElementById('vj').value,
             vj_genre: document.getElementById('vj_genre').value,
             logo: document.getElementById('logo').value,
@@ -245,6 +246,7 @@
                     document.getElementById('title').value = data.title || "";
                     document.getElementById('overview').value = data.overview || "";
                     document.getElementById('cast').value = data.cast || "";
+                    currentCastList = data.castList || [];
                     document.getElementById('vj').value = data.vj || "";
                     document.getElementById('vj_genre').value = data.vj_genre || "";
                     document.getElementById('logo').value = data.logo || "";
@@ -425,8 +427,8 @@
         loadFullOldDbList();
         saveDraft();
     }
-                        </script>
-                        <script>
+    </script>
+    <script>
     function resetForm() {
         document.getElementById('editId').value = '';
         document.getElementById('title').value = '';
