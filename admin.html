@@ -47,11 +47,12 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <h1 style="color: var(--accent);">LeoXtream Admin</h1>
         <div style="display: flex; gap: 10px;">
+            <button class="nav-btn" onclick="location.href='reported.html'" style="background:#e74c3c; color:white; border-color:#e74c3c;"><i class="fas fa-exclamation-triangle"></i> VIEW REPORTS</button>
             <button class="nav-btn" onclick="location.href='second.html'"><i class="fas fa-tasks"></i> MANAGER PANEL</button>
             <button id="resellerBtn" class="nav-btn" style="background:#e67e22; color:white; display:none;" onclick="toggleResellerSection()"><i class="fas fa-users"></i> RESELLERS</button>
         </div>
         </div>
-            <div class="card">
+                    <div class="card">
         <h3 style="color: var(--accent);"><i class="fas fa-bell"></i> Push Notification (FCM)</h3>
         <input type="text" id="fcmTitle" placeholder="Notification Title">
         <textarea id="fcmBody" rows="2" placeholder="Message content..."></textarea>
@@ -98,7 +99,7 @@
         <label>Title</label><input type="text" id="title" oninput="saveDraft()">
         <label>Overview</label><textarea id="overview" rows="3" oninput="saveDraft()"></textarea>
         <label>Cast Actors</label><input type="text" id="cast" oninput="saveDraft()">
-        <div style="display:flex; gap:10px;">
+                <div style="display:flex; gap:10px;">
             <div style="flex:1;"><label>VJ Name</label>
                 <select id="vj" onchange="saveDraft()">
                     <option value="Vj Junior">Vj Junior</option>
@@ -209,8 +210,7 @@
         loadUsers();
         checkDraft();
     };
-
-    function saveDraft() {
+            function saveDraft() {
         let episodes = [];
         document.querySelectorAll('.ep-link-input').forEach(input => {
             episodes.push({
@@ -324,9 +324,8 @@
         } catch (error) {
             resultsDiv.innerHTML = '<div style="padding:20px; color:var(--danger);">Error: Could not reach Pearl Pix source.</div>';
         }
-    }    
-    
-    function loadUsers() {
+        }
+            function loadUsers() {
         db.collection("usernames").orderBy("uid").onSnapshot(snap => {
             const list = document.getElementById('userList');
             list.innerHTML = '';
@@ -430,8 +429,7 @@
         loadFullOldDbList();
         saveDraft();
     }
-    </script>
-    <script>
+
     function resetForm() {
         document.getElementById('editId').value = '';
         document.getElementById('title').value = '';
