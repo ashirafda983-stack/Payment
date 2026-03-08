@@ -184,7 +184,7 @@
         <div id="fullOldDbList">Loading movies...</div>
     </div>
     </div>
-    <script>
+        <script>
     const firebaseConfig = { 
         apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
         authDomain: "leoxtream-46cdf.firebaseapp.com", 
@@ -415,8 +415,7 @@
             });
         });
     }
-
-    const categories = ["Newly Added", "Top Rated", "Action", "Adventure", "Animations", "Comedy", "Crime", "Drama", "Fantasy", "Horror", "Romance", "Sci-Fi", "TV Show", "Thriller", "Series", "Leo Likes"];
+                const categories = ["Newly Added", "Top Rated", "Action", "Adventure", "Animations", "Comedy", "Crime", "Drama", "Fantasy", "Horror", "Romance", "Sci-Fi", "TV Show", "Thriller", "Series", "Leo Likes"];
     const catGrid = document.getElementById('catGrid');
     categories.forEach(c => { catGrid.innerHTML += `<div class="cat-item"><input type="checkbox" class="genre-check" value="${c}" onchange="saveDraft()"> ${c}</div>`; });
 
@@ -607,9 +606,13 @@
             if (!checkQuery.empty) { alert("Already exists!"); return; }
         }
         let seriesEpisodes = [];
+        let totalEpisodes = 0;
+        let filledEpisodes = 0;
         if(searchType === 'tv') {
             document.querySelectorAll('.ep-link-input').forEach(input => { 
+                totalEpisodes++;
                 if(input.value.trim() !== "") {
+                    filledEpisodes++;
                     seriesEpisodes.push({ 
                         title: input.getAttribute('data-title'), 
                         link: input.value.trim(),
@@ -638,8 +641,31 @@
             categories: Array.from(document.querySelectorAll('.genre-check:checked')).map(c => c.value),
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
-        if (docId) await db.collection("movies").doc(docId).set(payload, { merge: true });
-        else await db.collection("movies").add(payload);
+        
+        let finalDocId = docId;
+        if (docId) {
+            await db.collection("movies").doc(docId).set(payload, { merge: true });
+        } else {
+            const newDoc = await db.collection("movies").add(payload);
+            finalDocId = newDoc.id;
+        }
+
+        if (searchType === 'tv') {
+            if (totalEpisodes > filledEpisodes) {
+                await db.collection("upcoming_series").doc(finalDocId).set({
+                    title: currentTitle,
+                    overview: document.getElementById('overview').value,
+                    poster: document.getElementById('poster').value,
+                    vjName: currentVj,
+                    epFrom: filledEpisodes,
+                    epTo: totalEpisodes,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                await db.collection("upcoming_series").doc(finalDocId).delete().catch(() => {});
+            }
+        }
+
         localStorage.removeItem('leoxtream_admin_backup');
         alert("Upload Successful!");
         location.reload();
