@@ -76,7 +76,7 @@
         </div>
         <div id="resellerList" style="margin-top:15px; max-height: 200px; overflow-y: auto;"></div>
     </div>
-    <div class="card">
+        <div class="card">
         <h3>1. Search Content</h3>
         <div class="type-selector">
             <div class="type-btn active" id="typeMovie" onclick="setType('movie')">MOVIE</div>
@@ -157,8 +157,8 @@
                     <option value="Vj Arafa">Vj Arafa</option>
                     <option value="Vj Eddie">Vj Eddie</option>
                 </select>
-            </div>
-            <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured" onchange="saveDraft()"> Show in Banner</div></div>
+                        </div>
+                                    <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured" onchange="saveDraft()"> Show in Banner</div></div>
         </div>
         <div style="display:flex; gap:10px;">
             <div style="flex:1;"><label>VJ Category/Genre (Auto-filled)</label><input type="text" id="vj_genre" placeholder="Genre from Old DB" oninput="saveDraft()"></div>
@@ -285,8 +285,7 @@
             }
         }
     }
-
-    async function searchPearlSource() {
+                async function searchPearlSource() {
         const query = document.getElementById('tmdbInput').value;
         if (!query) return alert("Please enter a movie name first.");
         const resultsDiv = document.getElementById('searchResults');
@@ -360,6 +359,21 @@
         const title = document.getElementById('fcmTitle').value;
         const message = document.getElementById('fcmBody').value;
         if(!title || !message) { alert("Please fill both title and message"); return; }
+        
+        try {
+            await fetch('https://fcm.googleapis.com/fcm/send', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'key=BEesDIZ35bDpMz6wlrjhPclJNqXrpCDjF4rNSS3ZVmnXy7ovs1cHjGqq3VFzytzihA8YXFj40scCkkH0n7P2Zxg',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    to: '/topics/all_users',
+                    notification: { title: title, body: message, click_action: 'https://leoxtream-46cdf.firebaseapp.com' }
+                })
+            });
+        } catch(e) { console.error(e); }
+
         await db.collection("notifications").add({
             title: title,
             message: message,
@@ -447,9 +461,8 @@
         document.querySelectorAll('.genre-check').forEach(cb => cb.checked = false);
         localStorage.removeItem('leoxtream_admin_backup');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    async function searchTMDB() {
+            }
+                async function searchTMDB() {
         const query = document.getElementById('tmdbInput').value;
         const res = await fetch(`https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`);
         const data = await res.json();
