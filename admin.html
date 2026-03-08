@@ -7,6 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --bg: #050810; --card: #0f141e; --accent: #00a8ff; --vj-green: #22c55e; --danger: #e74c3c; }
@@ -21,7 +22,7 @@
         .res-item { cursor: pointer; text-align: center; background: #161b26; padding: 5px; border-radius: 5px; }
         .res-item img { width: 100%; border-radius: 5px; height: 160px; object-fit: cover; }
         .grid-cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; background: #161b26; padding: 15px; border-radius: 10px; margin-top: 10px; }
-        .cat-item { font-size: 11px; display: flex; align-items: center; gap: 5px; }
+                .cat-item { font-size: 11px; display: flex; align-items: center; gap: 5px; }
         button { padding: 12px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; }
         .btn-primary { background: var(--accent); color: white; font-size: 16px; }
         .movie-item { display: flex; align-items: center; gap: 15px; background: #161b26; padding: 10px; border-radius: 10px; margin-bottom: 10px; cursor: pointer; }
@@ -67,7 +68,7 @@
         <h3 style="color: #f1c40f;"><i class="fa-solid fa-envelope-open-text"></i> User Movie Requests</h3>
         <div id="requestList" style="max-height: 200px; overflow-y: auto;">Loading requests...</div>
     </div>
-    <div class="card" id="resellerSection" style="display:none;">
+        <div class="card" id="resellerSection" style="display:none;">
         <h3><i class="fas fa-user-plus"></i> Reseller Management</h3>
         <div style="display:flex; gap:10px;">
             <input type="text" id="resUser" placeholder="New Username">
@@ -157,8 +158,8 @@
                     <option value="Vj Arafa">Vj Arafa</option>
                     <option value="Vj Eddie">Vj Eddie</option>
                 </select>
-            </div>
-            <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured" onchange="saveDraft()"> Show in Banner</div></div>
+                                                           </div>
+                                                                       <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured" onchange="saveDraft()"> Show in Banner</div></div>
         </div>
         <div style="display:flex; gap:10px;">
             <div style="flex:1;"><label>VJ Category/Genre (Auto-filled)</label><input type="text" id="vj_genre" placeholder="Genre from Old DB" oninput="saveDraft()"></div>
@@ -195,6 +196,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const rtdb = firebase.database();
+    const messaging = firebase.messaging();
     const TMDB_KEY = '0f753f44c20497f81f2652e3eaa291bb';
     let searchType = 'movie'; 
     let currentCastList = [];
@@ -238,8 +240,7 @@
         };
         localStorage.setItem('leoxtream_admin_backup', JSON.stringify(draft));
     }
-
-    function checkDraft() {
+                function checkDraft() {
         const saved = localStorage.getItem('leoxtream_admin_backup');
         if(saved) {
             const data = JSON.parse(saved);
@@ -324,8 +325,8 @@
         } catch (error) {
             resultsDiv.innerHTML = '<div style="padding:20px; color:var(--danger);">Error: Could not reach Pearl Pix source.</div>';
         }
-        }
-            function loadUsers() {
+            }
+                        function loadUsers() {
         db.collection("usernames").orderBy("uid").onSnapshot(snap => {
             const list = document.getElementById('userList');
             list.innerHTML = '';
@@ -360,16 +361,36 @@
         const title = document.getElementById('fcmTitle').value;
         const message = document.getElementById('fcmBody').value;
         if(!title || !message) { alert("Please fill both title and message"); return; }
-        await db.collection("notifications").add({
-            title: title,
-            message: message,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            status: "unread",
-            userId: "all"
-        });
-        alert("Notification sent!");
-        document.getElementById('fcmTitle').value = '';
-        document.getElementById('fcmBody').value = '';
+        
+        try {
+            await db.collection("notifications").add({
+                title: title,
+                message: message,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                status: "unread",
+                userId: "all"
+            });
+            
+            const fcmPayload = {
+                notification: { title: title, body: message },
+                to: "/topics/all"
+            };
+            
+            await fetch('https://fcm.googleapis.com/fcm/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'key=YOUR_SERVER_KEY'
+                },
+                body: JSON.stringify(fcmPayload)
+            });
+
+            alert("Notification sent to Firestore and FCM!");
+            document.getElementById('fcmTitle').value = '';
+            document.getElementById('fcmBody').value = '';
+        } catch (err) {
+            alert("Sent to Firestore (FCM might require server config)");
+        }
     }
 
     function loadRequests() {
@@ -415,7 +436,8 @@
             });
         });
     }
-                const categories = ["Newly Added", "Top Rated", "Action", "Adventure", "Animations", "Comedy", "Crime", "Drama", "Fantasy", "Horror", "Romance", "Sci-Fi", "TV Show", "Thriller", "Series", "Leo Likes"];
+
+    const categories = ["Newly Added", "Top Rated", "Action", "Adventure", "Animations", "Comedy", "Crime", "Drama", "Fantasy", "Horror", "Romance", "Sci-Fi", "TV Show", "Thriller", "Series", "Leo Likes"];
     const catGrid = document.getElementById('catGrid');
     categories.forEach(c => { catGrid.innerHTML += `<div class="cat-item"><input type="checkbox" class="genre-check" value="${c}" onchange="saveDraft()"> ${c}</div>`; });
 
