@@ -12,20 +12,18 @@
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; -webkit-tap-highlight-color: transparent; }
         .container { max-width: 1100px; margin: 0 auto; }
         
-        /* Header & Stats */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 5px; }
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .stat-card { background: var(--card); padding: 15px 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
         .stat-val { font-size: 20px; font-weight: 900; color: var(--accent); }
         .stat-label { font-size: 10px; text-transform: uppercase; color: var(--text-dim); margin-top: 5px; }
 
-        /* Table Styles */
         .table-container { overflow-x: auto; background: var(--card); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
         table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th { background: #1a202c; padding: 12px; text-align: left; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        th { background: #1a202c; padding: 12px; text-align: left; font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
         td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
         .movie-info { display: flex; align-items: center; gap: 12px; }
-        .movie-info img { width: 35px; height: 50px; border-radius: 6px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .movie-info img { width: 35px; height: 50px; border-radius: 6px; object-fit: cover; }
         
         .badge { padding: 4px 8px; border-radius: 5px; font-size: 9px; font-weight: bold; text-transform: uppercase; }
         .badge-movie { background: rgba(0, 168, 255, 0.15); color: var(--accent); }
@@ -35,49 +33,36 @@
         .btn-action { width: 36px; height: 36px; border-radius: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-edit { background: rgba(34, 197, 94, 0.1); color: var(--success); }
         .btn-delete { background: rgba(231, 76, 60, 0.1); color: var(--danger); }
-        .btn-action:active { transform: scale(0.9); }
 
-        /* Modal Logic */
         #editModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; align-items: center; justify-content: center; padding: 10px; }
         .modal-content { background: var(--card); width: 100%; max-width: 550px; padding: 20px; border-radius: 20px; border: 1px solid #2d3748; max-height: 90vh; overflow-y: auto; position: relative; }
         
         .modal-content label { display: block; margin: 15px 0 6px; font-size: 11px; color: var(--accent); font-weight: bold; text-transform: uppercase; }
         .modal-content input, .modal-content select { width: 100%; padding: 12px; background: #050810; border: 1px solid #2d3748; color: white; border-radius: 10px; box-sizing: border-box; font-size: 14px; outline: none; }
-        .modal-content input:focus { border-color: var(--accent); }
 
-        /* Episode List Section */
-        .season-selector-wrapper { margin-top: 15px; background: #0a0f18; padding: 10px; border-radius: 12px; border: 1px solid #1a202c; }
+        .season-box { background: #0a0f18; padding: 10px; border-radius: 12px; border: 1px solid #1a202c; margin-top: 15px; }
         .ep-list-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .ep-item { background: #0d121b; padding: 12px; border-radius: 12px; border: 1px solid #1a202c; transition: 0.3s; }
-        .ep-item.has-link { border-left: 4px solid var(--success); }
-        .ep-item.no-link { border-left: 4px solid var(--danger); }
+        .ep-item { background: #0d121b; padding: 12px; border-radius: 12px; border: 1px solid #1a202c; border-left: 4px solid var(--accent); }
         .ep-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .ep-title { font-size: 12px; font-weight: 600; color: #eee; }
-        .ep-status { font-size: 9px; text-transform: uppercase; font-weight: 900; }
         
         .modal-btns { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; margin-top: 25px; position: sticky; bottom: 0; background: var(--card); padding-top: 10px; }
-        .btn-save { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-save { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; }
         .btn-cancel { background: #1a202c; color: white; border: 1px solid #2d3748; padding: 16px; border-radius: 12px; cursor: pointer; }
 
         #modalLoading { position: absolute; inset: 0; background: var(--card); z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 20px; }
-        
-        @media (max-width: 600px) {
-            .stats-grid { gap: 8px; }
-            .stat-val { font-size: 18px; }
-            td, th { padding: 10px 8px; font-size: 12px; }
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <h2 style="color: var(--accent); margin:0; letter-spacing: 1px;">LEOXTREAM <span style="font-weight: 300; font-size: 14px; color: white;">PRO</span></h2>
-            <a href="admin.html" style="background: var(--accent); color:white; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold;"><i class="fas fa-plus"></i> NEW</a>
+            <h2 style="color: var(--accent); margin:0;">LEOXTREAM MANAGER</h2>
+            <a href="admin.html" class="btn-back" style="background:var(--accent); text-decoration:none; color:white; padding:8px 12px; border-radius:8px; font-size:12px;">+ ADD</a>
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-val" id="totalCount">0</div><div class="stat-label">All</div></div>
+            <div class="stat-card"><div class="stat-val" id="totalCount">0</div><div class="stat-label">Total</div></div>
             <div class="stat-card"><div class="stat-val" id="movieCount">0</div><div class="stat-label">Movies</div></div>
             <div class="stat-card"><div class="stat-val" id="seriesCount">0</div><div class="stat-label">Series</div></div>
         </div>
@@ -85,11 +70,7 @@
         <div class="table-container">
             <table>
                 <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Type</th>
-                        <th>Manage</th>
-                    </tr>
+                    <tr><th>Content</th><th>Type</th><th>Manage</th></tr>
                 </thead>
                 <tbody id="contentTable"></tbody>
             </table>
@@ -98,45 +79,30 @@
 
     <div id="editModal">
         <div class="modal-content">
-            <div id="modalLoading" style="display:none;">
-                <i class="fas fa-circle-notch fa-spin fa-2x" style="color: var(--accent);"></i>
-                <p style="margin-top:15px; font-size:12px; color:var(--text-dim);">Syncing with TMDB...</p>
-            </div>
+            <div id="modalLoading" style="display:none;"><i class="fas fa-sync fa-spin fa-2x" style="color:var(--accent);"></i></div>
 
             <div id="modalForm">
-                <h3 style="margin-top:0; color:var(--accent); display: flex; justify-content: space-between; align-items: center;">
-                    Edit Content <i class="fas fa-times" onclick="closeModal()" style="font-size: 16px; cursor: pointer; color: #555;"></i>
-                </h3>
-                
+                <h3 style="margin-top:0; color:var(--accent);">Update Content</h3>
                 <input type="hidden" id="editDocId">
-                
-                <label>Title</label>
-                <input type="text" id="editTitle">
-                
-                <label>VJ Name</label>
-                <input type="text" id="editVj">
-                
-                <label>Poster URL</label>
-                <input type="text" id="editPoster">
+                <label>Title</label><input type="text" id="editTitle">
+                <label>VJ Name</label><input type="text" id="editVj">
+                <label>Poster URL</label><input type="text" id="editPoster">
 
                 <div id="movieSection">
-                    <label>Video Play Link</label>
-                    <input type="text" id="editMovieLink" placeholder="https://...">
+                    <label>Video Link</label><input type="text" id="editMovieLink">
                 </div>
 
                 <div id="seriesSection" style="display:none;">
-                    <div class="season-selector-wrapper">
-                        <label style="margin:0 0 5px 0; color: #fff;">Select Season</label>
-                        <select id="seasonSelect" onchange="loadSeasonEpisodes()"></select>
+                    <div class="season-box">
+                        <label style="margin:0; color:#fff;">Available Seasons</label>
+                        <select id="seasonSelect" onchange="renderFirestoreEpisodes()"></select>
                     </div>
-                    
-                    <label style="margin-top:20px;">Episode Links</label>
                     <div id="epList" class="ep-list-container"></div>
                 </div>
 
                 <div class="modal-btns">
                     <button class="btn-save" id="saveBtn" onclick="updateContent()">SAVE CHANGES</button>
-                    <button class="btn-cancel" onclick="closeModal()">CANCEL</button>
+                    <button class="btn-cancel" onclick="closeModal()">CLOSE</button>
                 </div>
             </div>
         </div>
@@ -151,235 +117,141 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const TMDB_KEY = "b3c95973708307223e74360e527f3292";
 
-    let currentData = null;
-    let currentId = null;
+    let allSeriesData = []; 
 
     function loadContent() {
         db.collection("movies").orderBy("timestamp", "desc").onSnapshot(snap => {
             const tbody = document.getElementById('contentTable');
             tbody.innerHTML = '';
-            let t = 0, mCount = 0, sCount = 0;
-
+            let t=0, m=0, s=0;
+            
             snap.forEach(doc => {
                 const data = doc.data();
                 const id = doc.id;
                 t++;
-                if(data.type === 'Movie') mCount++; else sCount++;
+                if(data.type === 'Movie') m++; else s++;
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>
-                        <div class="movie-info">
-                            <img src="${data.poster}">
-                            <div>
-                                <div style="font-weight:bold;">${data.title}</div>
-                                <div style="font-size:10px; color:#555; margin-top:2px;">VJ: ${data.vj || 'N/A'}</div>
-                            </div>
-                        </div>
-                    </td>
+                    <td><div class="movie-info"><img src="${data.poster}"><b>${data.title}</b></div></td>
                     <td><span class="badge ${data.type === 'Movie' ? 'badge-movie' : 'badge-series'}">${data.type}</span></td>
-                    <td>
-                        <div class="actions">
-                            <button class="btn-action btn-edit" onclick='openModal("${id}", ${JSON.stringify(data).replace(/'/g, "&apos;")})'><i class="fas fa-pencil-alt"></i></button>
-                            <button class="btn-action btn-delete" onclick="deleteItem('${id}')"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </td>`;
+                    <td><div class="actions">
+                        <button class="btn-action btn-edit" onclick='openModal("${id}", ${JSON.stringify(data).replace(/'/g, "&apos;")})'><i class="fas fa-edit"></i></button>
+                        <button class="btn-action btn-delete" onclick="deleteItem('${id}')"><i class="fas fa-trash"></i></button>
+                    </div></td>`;
                 tbody.appendChild(tr);
             });
-
             document.getElementById('totalCount').innerText = t;
-            document.getElementById('movieCount').innerText = mCount;
-            document.getElementById('seriesCount').innerText = sCount;
+            document.getElementById('movieCount').innerText = m;
+            document.getElementById('seriesCount').innerText = s;
         });
     }
 
     async function openModal(id, data) {
-        currentId = id;
-        currentData = data;
         document.getElementById('editModal').style.display = 'flex';
-        document.getElementById('modalForm').style.display = 'none';
         document.getElementById('modalLoading').style.display = 'flex';
+        document.getElementById('modalForm').style.display = 'none';
 
         document.getElementById('editDocId').value = id;
         document.getElementById('editTitle').value = data.title || "";
         document.getElementById('editVj').value = data.vj || "";
         document.getElementById('editPoster').value = data.poster || "";
-        
-        const mSec = document.getElementById('movieSection');
-        const sSec = document.getElementById('seriesSection');
 
         if(data.type === 'Movie') {
-            mSec.style.display = 'block';
-            sSec.style.display = 'none';
-            document.getElementById('editMovieLink').value = data.link || data.movieLink || data.videoUrl || "";
-            document.getElementById('modalLoading').style.display = 'none';
-            document.getElementById('modalForm').style.display = 'block';
+            document.getElementById('movieSection').style.display = 'block';
+            document.getElementById('seriesSection').style.display = 'none';
+            document.getElementById('editMovieLink').value = data.link || data.videoUrl || "";
+            showForm();
         } else {
-            mSec.style.display = 'none';
-            sSec.style.display = 'block';
-            await setupSeriesManager(data);
+            document.getElementById('movieSection').style.display = 'none';
+            document.getElementById('seriesSection').style.display = 'block';
+            await fetchFirestoreSeriesData(data.title);
         }
     }
 
-    async function setupSeriesManager(data) {
+    async function fetchFirestoreSeriesData(title) {
+        // Fetch all documents with this title to get all uploaded seasons
+        const snap = await db.collection("movies").where("title", "==", title).get();
+        allSeriesData = [];
         const seasonSelect = document.getElementById('seasonSelect');
         seasonSelect.innerHTML = '';
-        
-        if(!data.tmdbId) {
-            alert("This series has no TMDB ID. Please add one in the Admin panel to fetch all episodes.");
-            renderFallbackEpisodes(data);
-            return;
-        }
 
-        try {
-            // Fetch All Seasons from TMDB
-            const res = await fetch(`https://api.themoviedb.org/3/tv/${data.tmdbId}?api_key=${TMDB_KEY}`);
-            const tvInfo = await res.json();
-            
-            tvInfo.seasons.forEach(s => {
-                if(s.season_number === 0) return; // Skip specials
-                const opt = document.createElement('option');
-                opt.value = s.season_number;
-                opt.innerText = `Season ${s.season_number} (${s.episode_count} Episodes)`;
-                if(s.season_number == (data.seasonNumber || 1)) opt.selected = true;
-                seasonSelect.appendChild(opt);
-            });
+        snap.forEach(doc => {
+            const d = doc.data();
+            allSeriesData.push({ id: doc.id, ...d });
+            const opt = document.createElement('option');
+            opt.value = doc.id;
+            opt.innerText = `Season ${d.seasonNumber || 1}`;
+            seasonSelect.appendChild(opt);
+        });
 
-            await loadSeasonEpisodes();
-
-        } catch(e) {
-            renderFallbackEpisodes(data);
-        }
+        renderFirestoreEpisodes();
+        showForm();
     }
 
-    async function loadSeasonEpisodes() {
-        const tmdbId = currentData.tmdbId;
-        const season = document.getElementById('seasonSelect').value;
+    function renderFirestoreEpisodes() {
+        const docId = document.getElementById('seasonSelect').value;
+        const currentSeason = allSeriesData.find(s => s.id === docId);
         const epContainer = document.getElementById('epList');
-        epContainer.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-sync fa-spin"></i> Loading Episodes...</div>';
+        epContainer.innerHTML = '';
 
-        try {
-            const res = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}/season/${season}?api_key=${TMDB_KEY}`);
-            const seasonData = await res.json();
-            
-            // Get existing links from Firestore for THIS specific season
-            // Note: If you store different seasons in different documents, we fetch the one matching this season
-            let existingEpisodes = [];
-            const seasonDoc = await db.collection("movies")
-                                     .where("tmdbId", "==", tmdbId)
-                                     .where("seasonNumber", "==", parseInt(season))
-                                     .limit(1).get();
-            
-            if(!seasonDoc.empty) {
-                const sData = seasonDoc.docs[0].data();
-                existingEpisodes = typeof sData.Episodes === 'string' ? JSON.parse(sData.Episodes) : (sData.Episodes || []);
-            } else if(season == (currentData.seasonNumber || 1)) {
-                existingEpisodes = typeof currentData.Episodes === 'string' ? JSON.parse(currentData.Episodes) : (currentData.Episodes || []);
-            }
-
-            epContainer.innerHTML = '';
-            seasonData.episodes.forEach(ep => {
-                const epNum = ep.episode_number;
-                const match = existingEpisodes.find(fe => fe.title.includes(`Episode ${epNum}`) || fe.title.includes(`E${epNum}`));
-                const link = match ? match.link : "";
-                
+        if(currentSeason) {
+            let eps = typeof currentSeason.Episodes === 'string' ? JSON.parse(currentSeason.Episodes) : (currentSeason.Episodes || []);
+            eps.forEach((ep, i) => {
                 const div = document.createElement('div');
-                div.className = `ep-item ${link ? 'has-link' : 'no-link'}`;
+                div.className = 'ep-item';
                 div.innerHTML = `
-                    <div class="ep-header">
-                        <span class="ep-title">E${epNum}: ${ep.name}</span>
-                        <span class="ep-status" style="color:${link ? 'var(--success)' : 'var(--danger)'}">${link ? 'Linked' : 'Missing'}</span>
-                    </div>
-                    <input type="text" class="ep-input" 
-                           data-title="Episode ${epNum}" 
-                           data-poster="${currentData.poster}" 
-                           value="${link}" 
-                           placeholder="Enter video link for Episode ${epNum}">
+                    <div class="ep-header"><span class="ep-title">${ep.title}</span></div>
+                    <input type="text" class="ep-input" data-title="${ep.title}" data-poster="${ep.poster}" value="${ep.link}">
                 `;
                 epContainer.appendChild(div);
             });
-
-        } catch(e) {
-            epContainer.innerHTML = '<div style="color:var(--danger); text-align:center; font-size:12px;">Failed to fetch from TMDB.</div>';
         }
+    }
 
+    function showForm() {
         document.getElementById('modalLoading').style.display = 'none';
         document.getElementById('modalForm').style.display = 'block';
     }
 
-    function renderFallbackEpisodes(data) {
-        const epContainer = document.getElementById('epList');
-        let eps = typeof data.Episodes === 'string' ? JSON.parse(data.Episodes) : (data.Episodes || []);
-        epContainer.innerHTML = '';
-        eps.forEach((ep, i) => {
-            const div = document.createElement('div');
-            div.className = 'ep-item has-link';
-            div.innerHTML = `<b>${ep.title}</b><input type="text" class="ep-input" data-title="${ep.title}" data-poster="${ep.poster}" value="${ep.link}">`;
-            epContainer.appendChild(div);
-        });
-        document.getElementById('modalLoading').style.display = 'none';
-        document.getElementById('modalForm').style.display = 'block';
-    }
-
-    function closeModal() {
-        document.getElementById('editModal').style.display = 'none';
-    }
+    function closeModal() { document.getElementById('editModal').style.display = 'none'; }
 
     async function updateContent() {
         const id = document.getElementById('editDocId').value;
         const btn = document.getElementById('saveBtn');
         btn.innerText = "UPDATING...";
-        btn.disabled = true;
-
+        
         const updateData = {
             title: document.getElementById('editTitle').value,
             vj: document.getElementById('editVj').value,
             poster: document.getElementById('editPoster').value
         };
 
-        if(currentData.type === 'Movie') {
-            const link = document.getElementById('editMovieLink').value;
-            updateData.link = link;
-            updateData.movieLink = link;
-            updateData.videoUrl = link;
+        const type = allSeriesData.find(x => x.id === id)?.type || (document.getElementById('movieSection').style.display === 'block' ? 'Movie' : 'Series');
+
+        if(type === 'Movie') {
+            updateData.link = document.getElementById('editMovieLink').value;
         } else {
             const inputs = document.querySelectorAll('.ep-input');
             let newEps = [];
             inputs.forEach(inp => {
-                if(inp.value.trim() !== "") {
-                    newEps.push({
-                        title: inp.getAttribute('data-title'),
-                        poster: inp.getAttribute('data-poster'),
-                        link: inp.value.trim()
-                    });
-                }
+                newEps.push({ title: inp.getAttribute('data-title'), poster: inp.getAttribute('data-poster'), link: inp.value.trim() });
             });
             updateData.Episodes = JSON.stringify(newEps);
-            updateData.seasonNumber = parseInt(document.getElementById('seasonSelect').value);
         }
 
         try {
             await db.collection("movies").doc(id).update(updateData);
-            alert("Database Synced!");
+            alert("Updated Successfully!");
             closeModal();
-        } catch (e) {
-            alert("Error: " + e.message);
-        } finally {
-            btn.innerText = "SAVE CHANGES";
-            btn.disabled = false;
-        }
+        } catch (e) { alert(e.message); }
+        btn.innerText = "SAVE CHANGES";
     }
 
-    async function deleteItem(id) {
-        if(confirm("Permanently remove this content?")) {
-            await db.collection("movies").doc(id).delete();
-        }
-    }
+    async function deleteItem(id) { if(confirm("Delete?")) await db.collection("movies").doc(id).delete(); }
 
     loadContent();
 </script>
 </body>
-    </html>
-    
+</html>
