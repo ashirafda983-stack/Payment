@@ -2,84 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LeoXtream | Content Manager</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --bg: #050810; --card: #0f141e; --accent: #00a8ff; --danger: #e74c3c; --success: #22c55e; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; -webkit-tap-highlight-color: transparent; }
         .container { max-width: 1100px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .btn-back { background: #1a202c; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; border: 1px solid #2d3748; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 0; }
+        .btn-back { background: #1a202c; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; border: 1px solid #2d3748; font-size: 14px; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
-        .stat-val { font-size: 24px; font-weight: 900; color: var(--accent); }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); padding: 15px 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .stat-val { font-size: 20px; font-weight: 900; color: var(--accent); }
+        .stat-label { font-size: 10px; text-transform: uppercase; color: #888; margin-top: 5px; }
 
-        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
-        th { background: #1a202c; padding: 15px; text-align: left; font-size: 14px; color: #888; }
-        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
-        tr:hover { background: rgba(255,255,255,0.02); }
+        .table-container { overflow-x: auto; background: var(--card); border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { background: #1a202c; padding: 12px; text-align: left; font-size: 12px; color: #888; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
         
-        .movie-info { display: flex; align-items: center; gap: 15px; }
-        .movie-info img { width: 40px; height: 55px; border-radius: 5px; object-fit: cover; }
+        .movie-info { display: flex; align-items: center; gap: 10px; }
+        .movie-info img { width: 35px; height: 50px; border-radius: 4px; object-fit: cover; }
         
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; text-transform: uppercase; }
         .badge-movie { background: rgba(0, 168, 255, 0.1); color: var(--accent); }
         .badge-series { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
 
-        .actions { display: flex; gap: 10px; }
-        .btn-action { width: 32px; height: 32px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .actions { display: flex; gap: 8px; }
+        .btn-action { width: 35px; height: 35px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-edit { background: rgba(34, 197, 94, 0.1); color: var(--success); }
         .btn-delete { background: rgba(231, 76, 60, 0.1); color: var(--danger); }
-        .btn-edit:hover { background: var(--success); color: white; }
-        .btn-delete:hover { background: var(--danger); color: white; }
 
-        #editModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: var(--card); width: 100%; max-width: 600px; padding: 30px; border-radius: 20px; border: 1px solid var(--accent); max-height: 90vh; overflow-y: auto; position: relative; }
-        .modal-content label { display: block; margin: 15px 0 5px; font-size: 12px; color: var(--accent); font-weight: bold; text-transform: uppercase; }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; background: #050810; border: 1px solid #2d3748; color: white; border-radius: 8px; box-sizing: border-box; }
-        .modal-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 25px; }
-        .btn-save { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 900; cursor: pointer; }
-        .btn-cancel { background: #1a202c; color: white; border: 1px solid #2d3748; padding: 15px; border-radius: 10px; cursor: pointer; }
+        #editModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; padding: 15px; }
+        .modal-content { background: var(--card); width: 100%; max-width: 500px; padding: 20px; border-radius: 15px; border: 1px solid #2d3748; max-height: 85vh; overflow-y: auto; }
+        .modal-content label { display: block; margin: 12px 0 4px; font-size: 11px; color: var(--accent); font-weight: bold; }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 12px; background: #050810; border: 1px solid #2d3748; color: white; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-save { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: #1a202c; color: white; border: 1px solid #2d3748; padding: 14px; border-radius: 10px; cursor: pointer; }
 
-        .ep-edit-box { background: #050810; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #2d3748; }
-        .ep-edit-box input { margin-top: 5px; font-size: 13px; border-color: rgba(0, 168, 255, 0.3); }
+        .ep-list-container { margin-top: 10px; border-top: 1px solid #2d3748; padding-top: 10px; }
+        .ep-item { background: #0a0f18; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--accent); }
+        .ep-item b { font-size: 12px; display: block; margin-bottom: 5px; }
+        .ep-item input { background: #000 !important; border-color: #1a202c !important; }
+        
+        @media (max-width: 600px) {
+            .stats-grid { gap: 5px; }
+            .stat-val { font-size: 16px; }
+            .stat-label { font-size: 8px; }
+            td, th { padding: 8px; font-size: 11px; }
+            .movie-info img { width: 30px; height: 40px; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <h1 style="color: var(--accent);">Content Manager</h1>
+            <h2 style="color: var(--accent); margin:0;">LeoXtream</h2>
             <a href="admin.html" class="btn-back"><i class="fas fa-plus"></i> Add New</a>
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-val" id="totalCount">0</div><div>Total Items</div></div>
-            <div class="stat-card"><div class="stat-val" id="movieCount">0</div><div>Movies</div></div>
-            <div class="stat-card"><div class="stat-val" id="seriesCount">0</div><div>Series</div></div>
+            <div class="stat-card"><div class="stat-val" id="totalCount">0</div><div class="stat-label">Total</div></div>
+            <div class="stat-card"><div class="stat-val" id="movieCount">0</div><div class="stat-label">Movies</div></div>
+            <div class="stat-card"><div class="stat-val" id="seriesCount">0</div><div class="stat-label">Series</div></div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>CONTENT</th>
-                    <th>TYPE</th>
-                    <th>VJ NAME</th>
-                    <th>DATE ADDED</th>
-                    <th>ACTIONS</th>
-                </tr>
-            </thead>
-            <tbody id="contentTable"></tbody>
-        </table>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Content</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="contentTable"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="editModal">
         <div class="modal-content">
-            <h2 style="margin:0; color:var(--accent);">Update Content</h2>
+            <h3 style="margin-top:0; color:var(--accent);">Edit Content</h3>
             <input type="hidden" id="editDocId">
             
             <label>Title</label>
@@ -88,28 +97,22 @@
             <label>VJ Name</label>
             <input type="text" id="editVj">
             
-            <label>Overview</label>
-            <textarea id="editOverview" rows="4"></textarea>
-            
             <label>Poster URL</label>
             <input type="text" id="editPoster">
-            
-            <label>Banner URL</label>
-            <input type="text" id="editBanner">
-            
-            <div id="movieLinkSection">
-                <label>Video Play Link</label>
-                <input type="text" id="editLink">
+
+            <div id="movieSection">
+                <label>Movie Play Link</label>
+                <input type="text" id="editMovieLink">
             </div>
 
-            <div id="seriesEpisodesSection" style="display:none;">
-                <label>Episodes Management</label>
-                <div id="editEpList" style="margin-top:10px;"></div>
+            <div id="seriesSection" style="display:none;">
+                <label>Episode Links</label>
+                <div id="epList" class="ep-list-container"></div>
             </div>
 
             <div class="modal-btns">
-                <button class="btn-save" onclick="updateContent()">SAVE CHANGES</button>
-                <button class="btn-cancel" onclick="closeModal()">CANCEL</button>
+                <button class="btn-save" id="saveBtn" onclick="updateContent()">UPDATE</button>
+                <button class="btn-cancel" onclick="closeModal()">CLOSE</button>
             </div>
         </div>
     </div>
@@ -124,89 +127,77 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let currentItemType = "";
+    let editingType = "";
 
     function loadContent() {
         db.collection("movies").orderBy("timestamp", "desc").onSnapshot(snap => {
             const tbody = document.getElementById('contentTable');
             tbody.innerHTML = '';
-            let total = 0, movies = 0, series = 0;
+            let t = 0, mCount = 0, sCount = 0;
 
             snap.forEach(doc => {
-                const m = doc.data();
+                const data = doc.data();
                 const id = doc.id;
-                total++;
-                if(m.type === 'Movie') movies++; else series++;
-
-                const date = m.timestamp ? new Date(m.timestamp.seconds * 1000).toLocaleDateString() : '---';
+                t++;
+                if(data.type === 'Movie') mCount++; else sCount++;
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>
                         <div class="movie-info">
-                            <img src="${m.poster}">
-                            <div><b>${m.title}</b></div>
+                            <img src="${data.poster}">
+                            <b>${data.title}</b>
                         </div>
                     </td>
-                    <td><span class="badge ${m.type === 'Movie' ? 'badge-movie' : 'badge-series'}">${m.type}</span></td>
-                    <td>${m.vj || '---'}</td>
-                    <td style="color: #666;">${date}</td>
+                    <td><span class="badge ${data.type === 'Movie' ? 'badge-movie' : 'badge-series'}">${data.type}</span></td>
                     <td>
                         <div class="actions">
-                            <button class="btn-action btn-edit" id="btn-edit-${id}"><i class="fas fa-edit"></i></button>
+                            <button class="btn-action btn-edit" onclick='openEditModal("${id}", ${JSON.stringify(data).replace(/'/g, "&apos;")})'><i class="fas fa-edit"></i></button>
                             <button class="btn-action btn-delete" onclick="deleteItem('${id}')"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>`;
                 tbody.appendChild(tr);
-
-                document.getElementById(`btn-edit-${id}`).onclick = () => openEditModal(id, m);
             });
 
-            document.getElementById('totalCount').innerText = total;
-            document.getElementById('movieCount').innerText = movies;
-            document.getElementById('seriesCount').innerText = series;
+            document.getElementById('totalCount').innerText = t;
+            document.getElementById('movieCount').innerText = mCount;
+            document.getElementById('seriesCount').innerText = sCount;
         });
     }
 
     function openEditModal(id, data) {
-        currentItemType = data.type;
+        editingType = data.type;
         document.getElementById('editDocId').value = id;
         document.getElementById('editTitle').value = data.title || "";
         document.getElementById('editVj').value = data.vj || "";
-        document.getElementById('editOverview').value = data.overview || "";
         document.getElementById('editPoster').value = data.poster || "";
-        document.getElementById('editBanner').value = data.banner || "";
         
-        const movieSection = document.getElementById('movieLinkSection');
-        const seriesSection = document.getElementById('seriesEpisodesSection');
-        const epList = document.getElementById('editEpList');
+        const mSec = document.getElementById('movieSection');
+        const sSec = document.getElementById('seriesSection');
+        const epContainer = document.getElementById('epList');
 
         if(data.type === 'Movie') {
-            movieSection.style.display = 'block';
-            seriesSection.style.display = 'none';
-            document.getElementById('editLink').value = data.link || data.movieLink || data.videoUrl || "";
+            mSec.style.display = 'block';
+            sSec.style.display = 'none';
+            document.getElementById('editMovieLink').value = data.link || data.movieLink || data.videoUrl || "";
         } else {
-            movieSection.style.display = 'none';
-            seriesSection.style.display = 'block';
-            epList.innerHTML = '';
+            mSec.style.display = 'none';
+            sSec.style.display = 'block';
+            epContainer.innerHTML = '';
             
             let episodes = [];
             try {
-                episodes = data.Episodes ? JSON.parse(data.Episodes) : [];
+                episodes = typeof data.Episodes === 'string' ? JSON.parse(data.Episodes) : (data.Episodes || []);
             } catch(e) { episodes = []; }
-
-            if(episodes.length === 0) {
-                epList.innerHTML = '<div style="color:#888; font-size:12px; padding:10px; text-align:center; border:1px dashed #2d3748;">No episodes found.</div>';
-            }
 
             episodes.forEach((ep, index) => {
                 const div = document.createElement('div');
-                div.className = 'ep-edit-box';
+                div.className = 'ep-item';
                 div.innerHTML = `
-                    <div style="font-size:12px; margin-bottom:5px; color:#ccc;"><b>${ep.title}</b></div>
-                    <input type="text" class="edit-ep-link" data-title="${ep.title}" data-poster="${ep.poster || data.poster}" value="${ep.link || ''}" placeholder="Paste link here...">
+                    <b>${ep.title || 'Episode ' + (index + 1)}</b>
+                    <input type="text" class="ep-input" data-title="${ep.title}" data-poster="${ep.poster || data.poster}" value="${ep.link || ''}" placeholder="Enter episode link...">
                 `;
-                epList.appendChild(div);
+                epContainer.appendChild(div);
             });
         }
         document.getElementById('editModal').style.display = 'flex';
@@ -218,50 +209,48 @@
 
     async function updateContent() {
         const id = document.getElementById('editDocId').value;
-        const btn = document.querySelector('.btn-save');
+        const btn = document.getElementById('saveBtn');
         btn.innerText = "UPDATING...";
         btn.disabled = true;
 
-        const updatedData = {
+        const updateData = {
             title: document.getElementById('editTitle').value,
             vj: document.getElementById('editVj').value,
-            overview: document.getElementById('editOverview').value,
-            poster: document.getElementById('editPoster').value,
-            banner: document.getElementById('editBanner').value
+            poster: document.getElementById('editPoster').value
         };
 
-        if(currentItemType === 'Movie') {
-            const playLink = document.getElementById('editLink').value;
-            updatedData.link = playLink;
-            updatedData.movieLink = playLink;
-            updatedData.videoUrl = playLink;
+        if(editingType === 'Movie') {
+            const link = document.getElementById('editMovieLink').value;
+            updateData.link = link;
+            updateData.movieLink = link;
+            updateData.videoUrl = link;
         } else {
-            const epInputs = document.querySelectorAll('.edit-ep-link');
-            let updatedEpisodes = [];
-            epInputs.forEach(input => {
-                updatedEpisodes.push({
-                    title: input.getAttribute('data-title'),
-                    poster: input.getAttribute('data-poster'),
-                    link: input.value.trim()
+            const inputs = document.querySelectorAll('.ep-input');
+            let newEps = [];
+            inputs.forEach(inp => {
+                newEps.push({
+                    title: inp.getAttribute('data-title'),
+                    poster: inp.getAttribute('data-poster'),
+                    link: inp.value.trim()
                 });
             });
-            updatedData.Episodes = JSON.stringify(updatedEpisodes);
+            updateData.Episodes = JSON.stringify(newEps);
         }
 
         try {
-            await db.collection("movies").doc(id).update(updatedData);
-            alert("Updated Successfully!");
+            await db.collection("movies").doc(id).update(updateData);
+            alert("Content updated!");
             closeModal();
-        } catch (error) {
-            alert("Error: " + error.message);
+        } catch (e) {
+            alert("Error: " + e.message);
         } finally {
-            btn.innerText = "SAVE CHANGES";
+            btn.innerText = "UPDATE";
             btn.disabled = false;
         }
     }
 
     async function deleteItem(id) {
-        if(confirm("Confirm deletion? This cannot be undone.")) {
+        if(confirm("Delete this item permanently?")) {
             await db.collection("movies").doc(id).delete();
         }
     }
