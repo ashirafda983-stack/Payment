@@ -37,7 +37,6 @@
         .btn-edit:hover { background: var(--success); color: white; }
         .btn-delete:hover { background: var(--danger); color: white; }
 
-        /* Update Modal Styling */
         #editModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--card); width: 100%; max-width: 600px; padding: 30px; border-radius: 20px; border: 1px solid var(--accent); max-height: 90vh; overflow-y: auto; position: relative; }
         .modal-content label { display: block; margin: 15px 0 5px; font-size: 12px; color: var(--accent); font-weight: bold; text-transform: uppercase; }
@@ -46,9 +45,8 @@
         .btn-save { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 900; cursor: pointer; }
         .btn-cancel { background: #1a202c; color: white; border: 1px solid #2d3748; padding: 15px; border-radius: 10px; cursor: pointer; }
 
-        /* Episode List Styling */
         .ep-edit-box { background: #050810; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #2d3748; }
-        .ep-edit-box input { margin-top: 5px; font-size: 13px; }
+        .ep-edit-box input { margin-top: 5px; font-size: 13px; border-color: rgba(0, 168, 255, 0.3); }
     </style>
 </head>
 <body>
@@ -106,7 +104,7 @@
 
             <div id="seriesEpisodesSection" style="display:none;">
                 <label>Episodes Management</label>
-                <div id="editEpList"></div>
+                <div id="editEpList" style="margin-top:10px;"></div>
             </div>
 
             <div class="modal-btns">
@@ -161,7 +159,6 @@
                     </td>`;
                 tbody.appendChild(tr);
 
-                // Attach event listener for Edit
                 document.getElementById(`btn-edit-${id}`).onclick = () => openEditModal(id, m);
             });
 
@@ -199,7 +196,7 @@
             } catch(e) { episodes = []; }
 
             if(episodes.length === 0) {
-                epList.innerHTML = '<div style="color:#888; font-size:12px; padding:10px;">No episodes found for this series.</div>';
+                epList.innerHTML = '<div style="color:#888; font-size:12px; padding:10px; text-align:center; border:1px dashed #2d3748;">No episodes found.</div>';
             }
 
             episodes.forEach((ep, index) => {
