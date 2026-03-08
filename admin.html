@@ -52,7 +52,7 @@
             <button id="resellerBtn" class="nav-btn" style="background:#e67e22; color:white; display:none;" onclick="toggleResellerSection()"><i class="fas fa-users"></i> RESELLERS</button>
         </div>
         </div>
-                    <div class="card">
+                            <div class="card">
         <h3 style="color: var(--accent);"><i class="fas fa-bell"></i> Push Notification (FCM)</h3>
         <input type="text" id="fcmTitle" placeholder="Notification Title">
         <textarea id="fcmBody" rows="2" placeholder="Message content..."></textarea>
@@ -157,8 +157,8 @@
                     <option value="Vj Arafa">Vj Arafa</option>
                     <option value="Vj Eddie">Vj Eddie</option>
                 </select>
-                        </div>
-                                    <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured" onchange="saveDraft()"> Show in Banner</div></div>
+    </div>
+                                        <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured" onchange="saveDraft()"> Show in Banner</div></div>
         </div>
         <div style="display:flex; gap:10px;">
             <div style="flex:1;"><label>VJ Category/Genre (Auto-filled)</label><input type="text" id="vj_genre" placeholder="Genre from Old DB" oninput="saveDraft()"></div>
@@ -245,7 +245,7 @@
             const data = JSON.parse(saved);
             if(data.title || data.movieLink || (data.episodes && data.episodes.length > 0)) {
                 if(confirm("You have unsaved progress. Would you like to restore it?")) {
-                    setType(data.searchType || 'movie');
+                                setType(data.searchType || 'movie');
                     document.getElementById('title').value = data.title || "";
                     document.getElementById('overview').value = data.overview || "";
                     document.getElementById('cast').value = data.cast || "";
@@ -353,9 +353,8 @@
 
     async function deleteUser(id) {
         if(confirm("Delete this user permanently?")) await db.collection("usernames").doc(id).delete();
-    }
-
-    async function sendNotification() {
+            }
+                async function sendNotification() {
         const title = document.getElementById('fcmTitle').value;
         const message = document.getElementById('fcmBody').value;
         if(!title || !message) { alert("Please fill both title and message"); return; }
@@ -369,7 +368,9 @@
                 },
                 body: JSON.stringify({
                     to: '/topics/all_users',
-                    notification: { title: title, body: message, click_action: 'https://leoxtream-46cdf.firebaseapp.com' }
+                    priority: 'high',
+                    notification: { title: title, body: message, click_action: 'https://leoxtream-46cdf.firebaseapp.com' },
+                    data: { title: title, body: message, click_action: 'https://leoxtream-46cdf.firebaseapp.com' }
                 })
             });
         } catch(e) { console.error(e); }
@@ -554,9 +555,8 @@
         document.getElementById('oldDbResults').style.display = 'none';
         saveDraft();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    async function selectItem(id, m) {
+            }
+                async function selectItem(id, m) {
         document.getElementById('title').value = m.title || m.name;
         document.getElementById('overview').value = m.overview;
         document.getElementById('poster').value = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
