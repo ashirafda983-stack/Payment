@@ -101,6 +101,7 @@
             <div style="flex:1;"><label>Year</label><input type="text" id="year" oninput="saveDraft()"></div>
             <div style="flex:1;"><label>Duration</label><input type="text" id="duration" oninput="saveDraft()"></div>
             <div style="flex:1;"><label>Language</label><input type="text" id="language" oninput="saveDraft()"></div>
+            <div style="flex:1;"><label>Size</label><input type="text" id="size" oninput="saveDraft()"></div>
         </div>
         <label>Overview</label><textarea id="overview" rows="3" oninput="saveDraft()"></textarea>
         <label>Cast Actors</label><input type="text" id="cast" oninput="saveDraft()">
@@ -131,8 +132,7 @@
                     <option value="Vj Dan Dee">Vj Dan Dee</option>
                     <option value="Vj Tom">Vj Tom</option>
                     <option value="Vj Banks">Vj Banks</option>
-                    <option value="Vj Cabs">Vj Cabs</option>
-                    <option value="Vj Lance">Vj Lance</option>
+                    <option value="Vj Cabs">Vj Lance</option>
                     <option value="Vj Kam">Vj Kam</option>
                     <option value="Vj Ashim">Vj Ashim</option>
                     <option value="Vj Jumpers">Vj Jumpers</option>
@@ -218,10 +218,12 @@
             function saveDraft() {
         let episodes = [];
         document.querySelectorAll('.ep-link-input').forEach(input => {
+            let sizeInput = input.parentElement.querySelector('.ep-size-input');
             episodes.push({
                 title: input.getAttribute('data-title'),
                 img: input.getAttribute('data-img'),
-                link: input.value
+                link: input.value,
+                size: sizeInput ? sizeInput.value : ""
             });
         });
         const draft = {
@@ -229,6 +231,7 @@
             year: document.getElementById('year').value,
             duration: document.getElementById('duration').value,
             language: document.getElementById('language').value,
+            size: document.getElementById('size').value,
             overview: document.getElementById('overview').value,
             cast: document.getElementById('cast').value,
             castList: currentCastList,
@@ -258,6 +261,7 @@
                     document.getElementById('year').value = data.year || "";
                     document.getElementById('duration').value = data.duration || "";
                     document.getElementById('language').value = data.language || "";
+                    document.getElementById('size').value = data.size || "";
                     document.getElementById('overview').value = data.overview || "";
                     document.getElementById('cast').value = data.cast || "";
                     currentCastList = data.castList || [];
@@ -287,6 +291,7 @@
                                     <div style="flex:1;">
                                         <strong>${ep.title}</strong>
                                         <input type="text" class="ep-link-input" data-title="${ep.title}" data-img="${ep.img}" value="${ep.link}" oninput="saveDraft()">
+                                        <input type="text" class="ep-size-input" placeholder="Size" value="${ep.size || ''}" oninput="saveDraft()" style="margin-top:5px;">
                                     </div>
                                 </div>`;
                             epList.appendChild(div);
@@ -322,6 +327,7 @@
                         let link = m.play_url || m.download_url || m.link;
                         if(link) link = link.replace('/d/', '/e/').replace('download', 'play');
                         document.getElementById('movieLink').value = link || "";
+                        document.getElementById('size').value = m.size || m.file_size || "";
                         saveDraft();
                         alert("Movie data and Play Link imported successfully!");
                         resultsDiv.style.display = 'none';
@@ -461,6 +467,7 @@
         document.getElementById('year').value = '';
         document.getElementById('duration').value = '';
         document.getElementById('language').value = '';
+        document.getElementById('size').value = '';
         document.getElementById('overview').value = '';
         document.getElementById('cast').value = '';
         document.getElementById('vj').value = '';
@@ -477,7 +484,7 @@
         localStorage.removeItem('leoxtream_admin_backup');
         window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-                async function searchTMDB() {
+    async function searchTMDB() {
         const query = document.getElementById('tmdbInput').value;
         const res = await fetch(`https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`);
         const data = await res.json();
@@ -541,6 +548,7 @@
             document.getElementById('year').value = data.year || data.Year || "";
             document.getElementById('duration').value = data.duration || data.Duration || "";
             document.getElementById('language').value = data.language || data.Language || "";
+            document.getElementById('size').value = data.size || data.Size || "";
             document.getElementById('overview').value = data.overview || data.Overview || "";
             document.getElementById('poster').value = data.poster || data.Poster || "";
             document.getElementById('banner').value = data.banner || data.Banner || data.Backdrop || "";
@@ -560,7 +568,7 @@
                         epData.Episodes.forEach((ep, index) => {
                             const epNum = `S${seasonNum} EPS ${index + 1}`;
                             const div = document.createElement('div'); div.className = 'ep-box';
-                            div.innerHTML = `<label>${epNum}</label><input type="text" class="ep-link-input" data-title="${epNum}" data-img="${data.Poster || data.poster || ''}" value="${ep.link}" oninput="saveDraft()">`;
+                            div.innerHTML = `<label>${epNum}</label><input type="text" class="ep-link-input" data-title="${epNum}" data-img="${data.Poster || data.poster || ''}" value="${ep.link}" oninput="saveDraft()"><input type="text" class="ep-size-input" placeholder="Size" value="${ep.size || ep.Size || ''}" oninput="saveDraft()" style="margin-top:5px;">`;
                             epList.appendChild(div);
                         });
                         saveDraft();
@@ -622,6 +630,7 @@
                             <div style="flex:1;">
                                 <strong>${epTitle}</strong>
                                 <input type="text" class="ep-link-input" data-title="${epTitle}" data-img="${epImg}" placeholder="Paste link for this episode" oninput="saveDraft()">
+                                <input type="text" class="ep-size-input" placeholder="Size" oninput="saveDraft()" style="margin-top:5px;">
                             </div>
                         </div>`;
                     epList.appendChild(div);
@@ -648,10 +657,12 @@
                 totalEpisodes++;
                 if(input.value.trim() !== "") {
                     filledEpisodes++;
+                    let sizeInput = input.parentElement.querySelector('.ep-size-input');
                     seriesEpisodes.push({ 
                         title: input.getAttribute('data-title'), 
                         link: input.value.trim(),
-                        poster: input.getAttribute('data-img')
+                        poster: input.getAttribute('data-img'),
+                        size: sizeInput ? sizeInput.value.trim() : ""
                     }); 
                 }
             });
@@ -661,6 +672,7 @@
             year: document.getElementById('year').value,
             duration: document.getElementById('duration').value,
             language: document.getElementById('language').value,
+            size: document.getElementById('size').value,
             overview: document.getElementById('overview').value,
             cast: document.getElementById('cast').value,
             castList: currentCastList,
