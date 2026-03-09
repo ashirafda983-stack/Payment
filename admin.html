@@ -52,7 +52,7 @@
             <button id="resellerBtn" class="nav-btn" style="background:#e67e22; color:white; display:none;" onclick="toggleResellerSection()"><i class="fas fa-users"></i> RESELLERS</button>
         </div>
         </div>
-                            <div class="card">
+                    <div class="card">
         <h3 style="color: var(--accent);"><i class="fas fa-bell"></i> Push Notification (FCM)</h3>
         <input type="text" id="fcmTitle" placeholder="Notification Title">
         <textarea id="fcmBody" rows="2" placeholder="Message content..."></textarea>
@@ -76,7 +76,7 @@
         </div>
         <div id="resellerList" style="margin-top:15px; max-height: 200px; overflow-y: auto;"></div>
     </div>
-        <div class="card">
+    <div class="card">
         <h3>1. Search Content</h3>
         <div class="type-selector">
             <div class="type-btn active" id="typeMovie" onclick="setType('movie')">MOVIE</div>
@@ -99,6 +99,16 @@
         <label>Title</label><input type="text" id="title" oninput="saveDraft()">
         <label>Overview</label><textarea id="overview" rows="3" oninput="saveDraft()"></textarea>
         <label>Cast Actors</label><input type="text" id="cast" oninput="saveDraft()">
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;"><label>IMDB Rating</label><input type="text" id="imdb" oninput="saveDraft()"></div>
+            <div style="flex:1;"><label>Year</label><input type="text" id="year" oninput="saveDraft()"></div>
+            <div style="flex:1;"><label>Duration</label><input type="text" id="duration" oninput="saveDraft()"></div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;"><label>Language</label><input type="text" id="language" oninput="saveDraft()"></div>
+            <div style="flex:1;"><label>Rates</label><input type="text" id="rates" oninput="saveDraft()"></div>
+            <div style="flex:1;"><label>Views</label><input type="number" id="views" value="0" oninput="saveDraft()"></div>
+        </div>
                 <div style="display:flex; gap:10px;">
             <div style="flex:1;"><label>VJ Name</label>
                 <select id="vj" onchange="saveDraft()">
@@ -157,8 +167,8 @@
                     <option value="Vj Arafa">Vj Arafa</option>
                     <option value="Vj Eddie">Vj Eddie</option>
                 </select>
-    </div>
-                                        <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured" onchange="saveDraft()"> Show in Banner</div></div>
+            </div>
+            <div style="flex:1;"><label>Banner</label><div style="padding-top:10px;"><input type="checkbox" id="isFeatured" onchange="saveDraft()"> Show in Banner</div></div>
         </div>
         <div style="display:flex; gap:10px;">
             <div style="flex:1;"><label>VJ Category/Genre (Auto-filled)</label><input type="text" id="vj_genre" placeholder="Genre from Old DB" oninput="saveDraft()"></div>
@@ -183,8 +193,8 @@
         <h3>Old Database Movies List</h3>
         <div id="fullOldDbList">Loading movies...</div>
     </div>
-    </div>
-        <script>
+</div>
+<script>
     const firebaseConfig = { 
         apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
         authDomain: "leoxtream-46cdf.firebaseapp.com", 
@@ -223,6 +233,12 @@
             title: document.getElementById('title').value,
             overview: document.getElementById('overview').value,
             cast: document.getElementById('cast').value,
+            imdb: document.getElementById('imdb').value,
+            year: document.getElementById('year').value,
+            duration: document.getElementById('duration').value,
+            language: document.getElementById('language').value,
+            rates: document.getElementById('rates').value,
+            views: document.getElementById('views').value,
             castList: currentCastList,
             vj: document.getElementById('vj').value,
             vj_genre: document.getElementById('vj_genre').value,
@@ -245,10 +261,16 @@
             const data = JSON.parse(saved);
             if(data.title || data.movieLink || (data.episodes && data.episodes.length > 0)) {
                 if(confirm("You have unsaved progress. Would you like to restore it?")) {
-                                setType(data.searchType || 'movie');
+                    setType(data.searchType || 'movie');
                     document.getElementById('title').value = data.title || "";
                     document.getElementById('overview').value = data.overview || "";
                     document.getElementById('cast').value = data.cast || "";
+                    document.getElementById('imdb').value = data.imdb || "";
+                    document.getElementById('year').value = data.year || "";
+                    document.getElementById('duration').value = data.duration || "";
+                    document.getElementById('language').value = data.language || "";
+                    document.getElementById('rates').value = data.rates || "";
+                    document.getElementById('views').value = data.views || "0";
                     currentCastList = data.castList || [];
                     document.getElementById('vj').value = data.vj || "";
                     document.getElementById('vj_genre').value = data.vj_genre || "";
@@ -285,7 +307,8 @@
             }
         }
     }
-                async function searchPearlSource() {
+
+    async function searchPearlSource() {
         const query = document.getElementById('tmdbInput').value;
         if (!query) return alert("Please enter a movie name first.");
         const resultsDiv = document.getElementById('searchResults');
@@ -323,8 +346,8 @@
         } catch (error) {
             resultsDiv.innerHTML = '<div style="padding:20px; color:var(--danger);">Error: Could not reach Pearl Pix source.</div>';
         }
-        }
-            function loadUsers() {
+    }
+    function loadUsers() {
         db.collection("usernames").orderBy("uid").onSnapshot(snap => {
             const list = document.getElementById('userList');
             list.innerHTML = '';
@@ -353,28 +376,12 @@
 
     async function deleteUser(id) {
         if(confirm("Delete this user permanently?")) await db.collection("usernames").doc(id).delete();
-            }
-                async function sendNotification() {
+    }
+
+    async function sendNotification() {
         const title = document.getElementById('fcmTitle').value;
         const message = document.getElementById('fcmBody').value;
         if(!title || !message) { alert("Please fill both title and message"); return; }
-        
-        try {
-            await fetch('https://fcm.googleapis.com/fcm/send', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'key=BEesDIZ35bDpMz6wlrjhPclJNqXrpCDjF4rNSS3ZVmnXy7ovs1cHjGqq3VFzytzihA8YXFj40scCkkH0n7P2Zxg',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    to: '/topics/all_users',
-                    priority: 'high',
-                    notification: { title: title, body: message, click_action: 'https://leoxtream-46cdf.firebaseapp.com' },
-                    data: { title: title, body: message, click_action: 'https://leoxtream-46cdf.firebaseapp.com' }
-                })
-            });
-        } catch(e) { console.error(e); }
-
         await db.collection("notifications").add({
             title: title,
             message: message,
@@ -430,7 +437,8 @@
             });
         });
     }
-                const categories = ["Newly Added", "Top Rated", "Action", "Adventure", "Animations", "Comedy", "Crime", "Drama", "Fantasy", "Horror", "Romance", "Sci-Fi", "TV Show", "Thriller", "Series", "Leo Likes"];
+
+    const categories = ["Newly Added", "Top Rated", "Action", "Adventure", "Animations", "Comedy", "Crime", "Drama", "Fantasy", "Horror", "Romance", "Sci-Fi", "TV Show", "Thriller", "Series", "Leo Likes"];
     const catGrid = document.getElementById('catGrid');
     categories.forEach(c => { catGrid.innerHTML += `<div class="cat-item"><input type="checkbox" class="genre-check" value="${c}" onchange="saveDraft()"> ${c}</div>`; });
 
@@ -449,6 +457,12 @@
         document.getElementById('title').value = '';
         document.getElementById('overview').value = '';
         document.getElementById('cast').value = '';
+        document.getElementById('imdb').value = '';
+        document.getElementById('year').value = '';
+        document.getElementById('duration').value = '';
+        document.getElementById('language').value = '';
+        document.getElementById('rates').value = '';
+        document.getElementById('views').value = '0';
         document.getElementById('vj').value = '';
         document.getElementById('vj_genre').value = '';
         document.getElementById('logo').value = '';
@@ -462,8 +476,9 @@
         document.querySelectorAll('.genre-check').forEach(cb => cb.checked = false);
         localStorage.removeItem('leoxtream_admin_backup');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-                async function searchTMDB() {
+    }
+
+    async function searchTMDB() {
         const query = document.getElementById('tmdbInput').value;
         const res = await fetch(`https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`);
         const data = await res.json();
@@ -555,8 +570,9 @@
         document.getElementById('oldDbResults').style.display = 'none';
         saveDraft();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-                async function selectItem(id, m) {
+    }
+
+    async function selectItem(id, m) {
         document.getElementById('title').value = m.title || m.name;
         document.getElementById('overview').value = m.overview;
         document.getElementById('poster').value = `https://image.tmdb.org/t/p/w500${m.poster_path}`;
@@ -565,12 +581,23 @@
         
         const detailRes = await fetch(`https://api.themoviedb.org/3/${searchType}/${id}?api_key=${TMDB_KEY}&append_to_response=videos,credits,images&include_image_language=en`);
         const details = await detailRes.json();
+        
         const logo = details.images.logos.find(l => l.file_path.endsWith('.png'));
         document.getElementById('logo').value = logo ? `https://image.tmdb.org/t/p/original${logo.file_path}` : "";
+        
         const trailer = details.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
         document.getElementById('trailer').value = trailer ? `http://googleusercontent.com/youtube.com/watch?v=${trailer.key}` : "";
+        
         currentCastList = details.credits.cast.slice(0, 12).map(a => ({ name: a.name, img: a.profile_path ? `https://image.tmdb.org/t/p/w200${a.profile_path}` : 'https://via.placeholder.com/100x100' }));
         document.getElementById('cast').value = currentCastList.map(a => a.name).join(", ");
+        
+        document.getElementById('imdb').value = details.vote_average ? details.vote_average.toFixed(1) : "7.5";
+        document.getElementById('year').value = details.release_date ? details.release_date.split('-')[0] : (details.first_air_date ? details.first_air_date.split('-')[0] : "2024");
+        document.getElementById('duration').value = details.runtime ? `${Math.floor(details.runtime/60)}h ${details.runtime%60}m` : (details.episode_run_time && details.episode_run_time[0] ? `${details.episode_run_time[0]}m` : "1h 45m");
+        document.getElementById('language').value = details.original_language ? details.original_language.toUpperCase() : "EN";
+        document.getElementById('rates').value = "N/A";
+        document.getElementById('views').value = "0";
+
         document.getElementById('vj_genre').value = details.genres.map(g => g.name).join(", ");
         
         document.querySelectorAll('.genre-check').forEach(cb => cb.checked = false);
@@ -619,13 +646,9 @@
             if (!checkQuery.empty) { alert("Already exists!"); return; }
         }
         let seriesEpisodes = [];
-        let totalEpisodes = 0;
-        let filledEpisodes = 0;
         if(searchType === 'tv') {
             document.querySelectorAll('.ep-link-input').forEach(input => { 
-                totalEpisodes++;
                 if(input.value.trim() !== "") {
-                    filledEpisodes++;
                     seriesEpisodes.push({ 
                         title: input.getAttribute('data-title'), 
                         link: input.value.trim(),
@@ -638,6 +661,12 @@
             title: currentTitle,
             overview: document.getElementById('overview').value,
             cast: document.getElementById('cast').value,
+            imdb: document.getElementById('imdb').value,
+            year: document.getElementById('year').value,
+            duration: document.getElementById('duration').value,
+            language: document.getElementById('language').value,
+            rates: document.getElementById('rates').value,
+            views: document.getElementById('views').value || "0",
             castList: currentCastList,
             logo: document.getElementById('logo').value,
             trailer: document.getElementById('trailer').value,
@@ -654,31 +683,8 @@
             categories: Array.from(document.querySelectorAll('.genre-check:checked')).map(c => c.value),
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
-        
-        let finalDocId = docId;
-        if (docId) {
-            await db.collection("movies").doc(docId).set(payload, { merge: true });
-        } else {
-            const newDoc = await db.collection("movies").add(payload);
-            finalDocId = newDoc.id;
-        }
-
-        if (searchType === 'tv') {
-            if (totalEpisodes > filledEpisodes) {
-                await db.collection("upcoming_series").doc(finalDocId).set({
-                    title: currentTitle,
-                    overview: document.getElementById('overview').value,
-                    poster: document.getElementById('poster').value,
-                    vjName: currentVj,
-                    epFrom: filledEpisodes,
-                    epTo: totalEpisodes,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } else {
-                await db.collection("upcoming_series").doc(finalDocId).delete().catch(() => {});
-            }
-        }
-
+        if (docId) await db.collection("movies").doc(docId).set(payload, { merge: true });
+        else await db.collection("movies").add(payload);
         localStorage.removeItem('leoxtream_admin_backup');
         alert("Upload Successful!");
         location.reload();
