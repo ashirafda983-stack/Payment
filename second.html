@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeoXtream | Content Manager</title>
+    <title>J MOVIES | Content Manager</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -45,6 +45,10 @@
         .modal-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 25px; }
         .btn-save { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 900; cursor: pointer; }
         .btn-cancel { background: #1a202c; color: white; border: 1px solid #2d3748; padding: 15px; border-radius: 10px; cursor: pointer; }
+        
+        .ep-edit-box { background: #161b26; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #2d3748; }
+        .ep-edit-box input { margin-bottom: 8px; padding: 10px; font-size: 13px; }
+        .ep-edit-box input:last-child { margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -79,6 +83,7 @@
         <div class="modal-content">
             <h2 style="margin:0; color:var(--accent);">Update Content</h2>
             <input type="hidden" id="editDocId">
+            <input type="hidden" id="editType">
             
             <label>Title</label>
             <input type="text" id="editTitle">
@@ -95,8 +100,15 @@
             <label>Banner URL</label>
             <input type="text" id="editBanner">
             
-            <label>Video Play Link</label>
-            <input type="text" id="editLink">
+            <div id="movieLinkSection">
+                <label>Video Play Link</label>
+                <input type="text" id="editLink">
+            </div>
+
+            <div id="seriesEpisodesSection" style="display:none; margin-top: 15px;">
+                <label>Episodes</label>
+                <div id="editEpisodesList" style="max-height: 280px; overflow-y: auto; padding-right: 5px; border-radius: 8px;"></div>
+            </div>
 
             <div class="modal-btns">
                 <button class="btn-save" onclick="updateContent()">SAVE CHANGES</button>
@@ -160,12 +172,46 @@
 
     function openEditModal(id, data) {
         document.getElementById('editDocId').value = id;
+        document.getElementById('editType').value = data.type || "Movie";
         document.getElementById('editTitle').value = data.title || "";
         document.getElementById('editVj').value = data.vj || "";
         document.getElementById('editOverview').value = data.overview || "";
         document.getElementById('editPoster').value = data.poster || "";
         document.getElementById('editBanner').value = data.banner || "";
-        document.getElementById('editLink').value = data.link || "";
+        
+        if (data.type === 'Series') {
+            document.getElementById('movieLinkSection').style.display = 'none';
+            document.getElementById('seriesEpisodesSection').style.display = 'block';
+            
+            const epList = document.getElementById('editEpisodesList');
+            epList.innerHTML = '';
+            
+            let eps = [];
+            if (data.Episodes) {
+                try { eps = JSON.parse(data.Episodes); } catch(e) {}
+            }
+            
+            if (eps.length === 0) {
+                epList.innerHTML = '<div style="color:#888; font-size:12px; padding:10px;">No episodes found.</div>';
+            } else {
+                eps.forEach(ep => {
+                    const div = document.createElement('div');
+                    div.className = 'ep-edit-box';
+                    div.innerHTML = `
+                        <input type="text" class="edit-ep-title" value="${ep.title || ''}" placeholder="Episode Title (e.g., S1 E1)">
+                        <input type="text" class="edit-ep-link" value="${ep.link || ''}" placeholder="Episode Play/Download Link">
+                        <input type="text" class="edit-ep-size" value="${ep.size || ''}" placeholder="Size (e.g., 150MB)">
+                        <input type="hidden" class="edit-ep-poster" value="${ep.poster || ''}">
+                    `;
+                    epList.appendChild(div);
+                });
+            }
+        } else {
+            document.getElementById('movieLinkSection').style.display = 'block';
+            document.getElementById('seriesEpisodesSection').style.display = 'none';
+            document.getElementById('editLink').value = data.link || data.movieLink || data.videoUrl || "";
+        }
+
         document.getElementById('editModal').style.display = 'flex';
     }
 
@@ -175,6 +221,7 @@
 
     async function updateContent() {
         const id = document.getElementById('editDocId').value;
+        const type = document.getElementById('editType').value;
         const btn = document.querySelector('.btn-save');
         btn.innerText = "UPDATING...";
         btn.disabled = true;
@@ -184,9 +231,25 @@
             vj: document.getElementById('editVj').value,
             overview: document.getElementById('editOverview').value,
             poster: document.getElementById('editPoster').value,
-            banner: document.getElementById('editBanner').value,
-            link: document.getElementById('editLink').value
+            banner: document.getElementById('editBanner').value
         };
+
+        if (type === 'Series') {
+            let episodes = [];
+            document.querySelectorAll('.ep-edit-box').forEach(box => {
+                episodes.push({
+                    title: box.querySelector('.edit-ep-title').value,
+                    link: box.querySelector('.edit-ep-link').value,
+                    size: box.querySelector('.edit-ep-size').value,
+                    poster: box.querySelector('.edit-ep-poster').value
+                });
+            });
+            updatedData.Episodes = JSON.stringify(episodes);
+        } else {
+            updatedData.link = document.getElementById('editLink').value;
+            updatedData.movieLink = document.getElementById('editLink').value;
+            updatedData.videoUrl = document.getElementById('editLink').value;
+        }
 
         try {
             await db.collection("movies").doc(id).update(updatedData);
