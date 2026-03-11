@@ -52,7 +52,7 @@
             <button id="resellerBtn" class="nav-btn" style="background:#e67e22; color:white; display:none;" onclick="toggleResellerSection()"><i class="fas fa-users"></i> RESELLERS</button>
         </div>
         </div>
-                            <div class="card">
+    <div class="card">
         <h3 style="color: var(--accent);"><i class="fas fa-bell"></i> Push Notification (FCM)</h3>
         <input type="text" id="fcmTitle" placeholder="Notification Title">
         <textarea id="fcmBody" rows="2" placeholder="Message content..."></textarea>
@@ -176,7 +176,8 @@
         <div id="seriesDiv" style="display:none;">
             <label>Auto-Fetched Episodes (All Seasons)</label>
             <div id="epList"></div>
-        </div>
+            <button onclick="addBlankEpisode()" style="margin-top:10px; background:#34495e; color:white; width:auto; padding:10px;"><i class="fas fa-plus"></i> ADD BLANK EPISODE</button>
+    </div>
         <label style="margin-top:15px; display:block;">Select Categories</label>
         <div class="grid-cats" id="catGrid"></div>
         <div style="display:flex; gap:10px;">
@@ -293,6 +294,7 @@
                                         <input type="text" class="ep-link-input" data-title="${ep.title}" data-img="${ep.img}" value="${ep.link}" oninput="saveDraft()">
                                         <input type="text" class="ep-size-input" placeholder="Size" value="${ep.size || ''}" oninput="saveDraft()" style="margin-top:5px;">
                                     </div>
+                                    <button onclick="this.closest('.ep-box').remove(); saveDraft();" style="width:auto; padding:10px; background:var(--danger); color:white; margin:0;"><i class="fas fa-trash"></i></button>
                                 </div>`;
                             epList.appendChild(div);
                         });
@@ -301,7 +303,7 @@
             }
         }
     }
-                async function searchPearlSource() {
+    async function searchPearlSource() {
         const query = document.getElementById('tmdbInput').value;
         if (!query) return alert("Please enter a movie name first.");
         const resultsDiv = document.getElementById('searchResults');
@@ -351,7 +353,7 @@
                 list.innerHTML += `
                     <div class="user-card">
                         <div class="user-info">
-                            <b>Name:</b> ${userId} | <b>UID:</b> ${u.uid}<br>
+                            <b>Name:</b> ${userId} | <b>UID:</b> ${u.uid} | <b>Email:</b> ${u.email || 'N/A'}<br>
                             <b>Status:</b> <span style="color:${u.isPremium ? 'gold' : '#888'}">${u.isPremium ? 'PREMIUM' : 'FREE'}</span>
                         </div>
                         <div class="user-actions">
@@ -363,6 +365,18 @@
         });
     }
 
+    function searchUsers() {
+        const query = document.getElementById('userSearch').value.toLowerCase();
+        const cards = document.querySelectorAll('.user-card');
+        cards.forEach(card => {
+            if (card.innerText.toLowerCase().includes(query)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
     async function togglePremium(id, current) {
         await db.collection("usernames").doc(id).update({ isPremium: !current });
         alert("User Status Updated!");
@@ -370,7 +384,7 @@
 
     async function deleteUser(id) {
         if(confirm("Delete this user permanently?")) await db.collection("usernames").doc(id).delete();
-            }
+    }
     async function sendNotification() {
         const title = document.getElementById('fcmTitle').value;
         const message = document.getElementById('fcmBody').value;
@@ -517,7 +531,6 @@
             });
         });
     }
-
     function searchOldDb() {
         const query = document.getElementById('oldDbInput').value.toLowerCase();
         const path = searchType === 'movie' ? 'Movies' : 'Series';
@@ -568,7 +581,15 @@
                         epData.Episodes.forEach((ep, index) => {
                             const epNum = `S${seasonNum} EPS ${index + 1}`;
                             const div = document.createElement('div'); div.className = 'ep-box';
-                            div.innerHTML = `<label>${epNum}</label><input type="text" class="ep-link-input" data-title="${epNum}" data-img="${data.Poster || data.poster || ''}" value="${ep.link}" oninput="saveDraft()"><input type="text" class="ep-size-input" placeholder="Size" value="${ep.size || ep.Size || ''}" oninput="saveDraft()" style="margin-top:5px;">`;
+                            div.innerHTML = `
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <div style="flex:1;">
+                                        <label>${epNum}</label>
+                                        <input type="text" class="ep-link-input" data-title="${epNum}" data-img="${data.Poster || data.poster || ''}" value="${ep.link}" oninput="saveDraft()">
+                                        <input type="text" class="ep-size-input" placeholder="Size" value="${ep.size || ep.Size || ''}" oninput="saveDraft()" style="margin-top:5px;">
+                                    </div>
+                                    <button onclick="this.closest('.ep-box').remove(); saveDraft();" style="width:auto; padding:10px; background:var(--danger); color:white; margin:0;"><i class="fas fa-trash"></i></button>
+                                </div>`;
                             epList.appendChild(div);
                         });
                         saveDraft();
@@ -632,12 +653,33 @@
                                 <input type="text" class="ep-link-input" data-title="${epTitle}" data-img="${epImg}" placeholder="Paste link for this episode" oninput="saveDraft()">
                                 <input type="text" class="ep-size-input" placeholder="Size" oninput="saveDraft()" style="margin-top:5px;">
                             </div>
+                            <button onclick="this.closest('.ep-box').remove(); saveDraft();" style="width:auto; padding:10px; background:var(--danger); color:white; margin:0;"><i class="fas fa-trash"></i></button>
                         </div>`;
                     epList.appendChild(div);
                 });
             }
             document.getElementById('loadingOverlay').style.display = 'none';
         }
+        saveDraft();
+    }
+
+    function addBlankEpisode() {
+        const epList = document.getElementById('epList');
+        const epCount = document.querySelectorAll('.ep-link-input').length + 1;
+        const div = document.createElement('div');
+        div.className = 'ep-box';
+        const epImg = document.getElementById('poster').value || 'https://via.placeholder.com/60x40';
+        div.innerHTML = `
+            <div style="display:flex; gap:10px; align-items:center;">
+                <img src="${epImg}" style="width:60px; height:40px; border-radius:4px; object-fit:cover;">
+                <div style="flex:1;">
+                    <input type="text" value="Manual Episode ${epCount}" oninput="this.parentElement.querySelector('.ep-link-input').setAttribute('data-title', this.value); saveDraft();" style="font-weight:bold; margin-bottom:5px; width:100%; background:transparent; border:none; border-bottom:1px solid #555; color:white; font-size:14px;">
+                    <input type="text" class="ep-link-input" data-title="Manual Episode ${epCount}" data-img="${epImg}" placeholder="Paste link for this episode" oninput="saveDraft()">
+                    <input type="text" class="ep-size-input" placeholder="Size" oninput="saveDraft()" style="margin-top:5px;">
+                </div>
+                <button onclick="this.closest('.ep-box').remove(); saveDraft();" style="width:auto; padding:10px; background:var(--danger); color:white; margin:0;"><i class="fas fa-trash"></i></button>
+            </div>`;
+        epList.appendChild(div);
         saveDraft();
     }
 
