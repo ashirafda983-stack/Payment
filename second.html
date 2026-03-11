@@ -37,6 +37,7 @@
         .btn-edit:hover { background: var(--success); color: white; }
         .btn-delete:hover { background: var(--danger); color: white; }
 
+        /* Update Modal Styling */
         #editModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--card); width: 100%; max-width: 600px; padding: 30px; border-radius: 20px; border: 1px solid var(--accent); max-height: 90vh; overflow-y: auto; position: relative; }
         .modal-content label { display: block; margin: 15px 0 5px; font-size: 12px; color: var(--accent); font-weight: bold; text-transform: uppercase; }
@@ -46,11 +47,12 @@
         .btn-save { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 900; cursor: pointer; }
         .btn-cancel { background: #1a202c; color: white; border: 1px solid #2d3748; padding: 15px; border-radius: 10px; cursor: pointer; }
         
-        .ep-edit-box { background: #161b26; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #2d3748; position: relative; }
-        .ep-edit-box input { margin-bottom: 8px; padding: 10px; font-size: 13px; border-color: rgba(255,255,255,0.1); width: calc(100% - 30px); }
-        .ep-edit-box input:last-child { margin-bottom: 0; }
-        .btn-del-ep { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; opacity: 0.6; transition: 0.3s; }
-        .btn-del-ep:hover { opacity: 1; transform: scale(1.1); }
+        /* Episode Row Styling */
+        .ep-edit-box { background: #161b26; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #2d3748; position: relative; display: flex; gap: 10px; align-items: flex-start; }
+        .ep-img { width: 60px; height: 80px; border-radius: 5px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+        .ep-inputs { flex: 1; }
+        .ep-inputs input { margin-bottom: 5px; padding: 8px; font-size: 12px; width: 100% !important; }
+        .btn-del-ep { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 5px; }
         .btn-add-ep { background: rgba(0, 168, 255, 0.1); color: var(--accent); border: 1px dashed var(--accent); width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
@@ -87,6 +89,8 @@
             <h2 style="margin:0; color:var(--accent);">Update Content</h2>
             <input type="hidden" id="editDocId">
             <input type="hidden" id="editType">
+            <input type="hidden" id="editTmdbId">
+            <input type="hidden" id="editSeasonNum">
             
             <label>Title</label>
             <input type="text" id="editTitle">
@@ -109,9 +113,12 @@
             </div>
 
             <div id="seriesEpisodesSection" style="display:none; margin-top: 15px;">
-                <label>Season Episodes</label>
-                <div id="editEpisodesList"></div>
-                <button type="button" class="btn-add-ep" onclick="addNewEpRow()">+ Add Blank Episode Slot</button>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label>Season Episodes</label>
+                    <button type="button" style="background:var(--success); color:white; border:none; padding:5px 10px; border-radius:5px; font-size:10px; cursor:pointer;" onclick="fetchFreshTmdbEpisodes()">REFETCH FROM TMDB</button>
+                </div>
+                <div id="editEpisodesList" style="margin-top:10px;"></div>
+                <button type="button" class="btn-add-ep" onclick="addNewEpRow()">+ Add Manual Episode</button>
             </div>
 
             <div class="modal-btns">
@@ -122,6 +129,7 @@
     </div>
 
 <script>
+    const tmdbKey = "187498c5388701041b3a16518a211470";
     const firebaseConfig = { 
         apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
         authDomain: "leoxtream-46cdf.firebaseapp.com", 
@@ -172,7 +180,7 @@
         });
     }
 
-    function openEditModal(id, data) {
+    async function openEditModal(id, data) {
         document.getElementById('editDocId').value = id;
         document.getElementById('editType').value = data.type || "Movie";
         document.getElementById('editTitle').value = data.title || "";
@@ -180,6 +188,8 @@
         document.getElementById('editOverview').value = data.overview || "";
         document.getElementById('editPoster').value = data.poster || "";
         document.getElementById('editBanner').value = data.banner || "";
+        document.getElementById('editTmdbId').value = data.tmdbId || "";
+        document.getElementById('editSeasonNum').value = data.seasonNumber || "1";
         
         const epList = document.getElementById('editEpisodesList');
         epList.innerHTML = '';
@@ -193,12 +203,11 @@
                 try { eps = JSON.parse(data.Episodes); } catch(e) {}
             }
 
-            // Fetch like admin: show all episodes up to totalCount, filling blanks where link is missing
-            const totalToDisplay = Math.max(eps.length, parseInt(data.totalEpisodes) || 0);
-
-            for(let i = 0; i < totalToDisplay; i++) {
-                const ep = eps[i] || { title: `Episode ${i+1}`, link: '', size: '', poster: data.poster };
-                addNewEpRow(ep.title, ep.link, ep.size, ep.poster);
+            // If we have saved episodes, show them. If not, try to fetch from TMDB automatically
+            if (eps.length > 0) {
+                eps.forEach(ep => addNewEpRow(ep.title, ep.link, ep.size, ep.poster));
+            } else if (data.tmdbId) {
+                fetchFreshTmdbEpisodes();
             }
         } else {
             document.getElementById('movieLinkSection').style.display = 'block';
@@ -209,16 +218,49 @@
         document.getElementById('editModal').style.display = 'flex';
     }
 
+    async function fetchFreshTmdbEpisodes() {
+        const tmdbId = document.getElementById('editTmdbId').value;
+        const seasonNum = document.getElementById('editSeasonNum').value;
+        const epList = document.getElementById('editEpisodesList');
+
+        if (!tmdbId) {
+            alert("No TMDB ID found for this series. Cannot fetch automatically.");
+            return;
+        }
+
+        epList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--accent);">Fetching from TMDB...</div>';
+
+        try {
+            const res = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}/season/${seasonNum}?api_key=${tmdbKey}`);
+            const data = await res.json();
+            
+            epList.innerHTML = '';
+            if (data.episodes) {
+                data.episodes.forEach(ep => {
+                    const posterPath = ep.still_path ? `https://image.tmdb.org/t/p/w500${ep.still_path}` : document.getElementById('editPoster').value;
+                    addNewEpRow(`Episode ${ep.episode_number}: ${ep.name}`, '', '', posterPath);
+                });
+            } else {
+                epList.innerHTML = '<div style="color:var(--danger);">Failed to fetch episodes. Check TMDB ID/Season.</div>';
+            }
+        } catch (e) {
+            alert("TMDB Fetch Error: " + e.message);
+        }
+    }
+
     function addNewEpRow(title = '', link = '', size = '', poster = '') {
         const epList = document.getElementById('editEpisodesList');
         const div = document.createElement('div');
         div.className = 'ep-edit-box';
         div.innerHTML = `
-            <button class="btn-del-ep" onclick="this.parentElement.remove()"><i class="fas fa-trash-alt"></i></button>
-            <input type="text" class="edit-ep-title" value="${title}" placeholder="Episode Title">
-            <input type="text" class="edit-ep-link" value="${link}" placeholder="Episode Link (Blank = Coming Soon)">
-            <input type="text" class="edit-ep-size" value="${size}" placeholder="File Size">
-            <input type="hidden" class="edit-ep-poster" value="${poster}">
+            <img src="${poster}" class="ep-img" onerror="this.src='https://via.placeholder.com/60x80?text=No+Img'">
+            <div class="ep-inputs">
+                <input type="text" class="edit-ep-title" value="${title}" placeholder="Episode Title">
+                <input type="text" class="edit-ep-link" value="${link}" placeholder="Paste Link Here">
+                <input type="text" class="edit-ep-size" value="${size}" placeholder="Size (e.g. 250MB)">
+                <input type="hidden" class="edit-ep-poster" value="${poster}">
+            </div>
+            <button title="Remove Episode" class="btn-del-ep" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
         `;
         epList.appendChild(div);
     }
@@ -259,7 +301,6 @@
             updatedData.Episodes = JSON.stringify(episodes);
             updatedData.totalEpisodes = episodes.length;
 
-            // Sync with upcoming_series: If links are missing, update upcoming list
             if (episodes.length > filledCount) {
                 await db.collection("upcoming_series").doc(id).set({
                     title: updatedData.title,
