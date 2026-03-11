@@ -37,19 +37,21 @@
         .btn-edit:hover { background: var(--success); color: white; }
         .btn-delete:hover { background: var(--danger); color: white; }
 
-        /* Update Modal Styling */
         #editModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--card); width: 100%; max-width: 600px; padding: 30px; border-radius: 20px; border: 1px solid var(--accent); max-height: 90vh; overflow-y: auto; position: relative; }
         .modal-content label { display: block; margin: 15px 0 5px; font-size: 12px; color: var(--accent); font-weight: bold; text-transform: uppercase; }
         .modal-content input, .modal-content textarea { width: 100%; padding: 12px; background: #050810; border: 1px solid #2d3748; color: white; border-radius: 8px; box-sizing: border-box; }
-        .modal-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 25px; }
+        
+        .modal-btns { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 25px; position: sticky; bottom: -30px; background: var(--card); padding-top: 10px; }
         .btn-save { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 900; cursor: pointer; }
         .btn-cancel { background: #1a202c; color: white; border: 1px solid #2d3748; padding: 15px; border-radius: 10px; cursor: pointer; }
         
-        .ep-edit-box { background: #161b26; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #2d3748; }
-        .ep-edit-box input { margin-bottom: 8px; padding: 10px; font-size: 13px; border-color: rgba(255,255,255,0.1); }
+        .ep-edit-box { background: #161b26; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #2d3748; position: relative; }
+        .ep-edit-box input { margin-bottom: 8px; padding: 10px; font-size: 13px; border-color: rgba(255,255,255,0.1); width: calc(100% - 30px); }
         .ep-edit-box input:last-child { margin-bottom: 0; }
-        .btn-add-ep { background: rgba(0, 168, 255, 0.1); color: var(--accent); border: 1px dashed var(--accent); width: 100%; padding: 10px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .btn-del-ep { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; opacity: 0.6; transition: 0.3s; }
+        .btn-del-ep:hover { opacity: 1; transform: scale(1.1); }
+        .btn-add-ep { background: rgba(0, 168, 255, 0.1); color: var(--accent); border: 1px dashed var(--accent); width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -107,9 +109,9 @@
             </div>
 
             <div id="seriesEpisodesSection" style="display:none; margin-top: 15px;">
-                <label>Episodes</label>
+                <label>Season Episodes</label>
                 <div id="editEpisodesList"></div>
-                <button type="button" class="btn-add-ep" onclick="addNewEpRow()">+ Add Blank Episode</button>
+                <button type="button" class="btn-add-ep" onclick="addNewEpRow()">+ Add Blank Episode Slot</button>
             </div>
 
             <div class="modal-btns">
@@ -191,8 +193,7 @@
                 try { eps = JSON.parse(data.Episodes); } catch(e) {}
             }
 
-            // Determine how many rows to show. 
-            // It shows existing episodes AND adds blank rows up to the 'totalEpisodes' count if available.
+            // Fetch like admin: show all episodes up to totalCount, filling blanks where link is missing
             const totalToDisplay = Math.max(eps.length, parseInt(data.totalEpisodes) || 0);
 
             for(let i = 0; i < totalToDisplay; i++) {
@@ -213,9 +214,10 @@
         const div = document.createElement('div');
         div.className = 'ep-edit-box';
         div.innerHTML = `
-            <input type="text" class="edit-ep-title" value="${title}" placeholder="Episode Title (e.g., S1 E1)">
-            <input type="text" class="edit-ep-link" value="${link}" placeholder="Link (Leave blank if not uploaded)">
-            <input type="text" class="edit-ep-size" value="${size}" placeholder="Size (e.g., 200MB)">
+            <button class="btn-del-ep" onclick="this.parentElement.remove()"><i class="fas fa-trash-alt"></i></button>
+            <input type="text" class="edit-ep-title" value="${title}" placeholder="Episode Title">
+            <input type="text" class="edit-ep-link" value="${link}" placeholder="Episode Link (Blank = Coming Soon)">
+            <input type="text" class="edit-ep-size" value="${size}" placeholder="File Size">
             <input type="hidden" class="edit-ep-poster" value="${poster}">
         `;
         epList.appendChild(div);
@@ -256,9 +258,21 @@
             });
             updatedData.Episodes = JSON.stringify(episodes);
             updatedData.totalEpisodes = episodes.length;
-            
-            // Sync with upcoming_series logic if needed
-            // If episodes.length > filledCount, it could stay in upcoming_series
+
+            // Sync with upcoming_series: If links are missing, update upcoming list
+            if (episodes.length > filledCount) {
+                await db.collection("upcoming_series").doc(id).set({
+                    title: updatedData.title,
+                    overview: updatedData.overview,
+                    poster: updatedData.poster,
+                    vjName: updatedData.vj,
+                    epFrom: filledCount,
+                    epTo: episodes.length,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } else {
+                await db.collection("upcoming_series").doc(id).delete().catch(()=>{});
+            }
         } else {
             const link = document.getElementById('editLink').value;
             updatedData.link = link;
@@ -281,6 +295,7 @@
     async function deleteItem(id) {
         if(confirm("Confirm deletion? This cannot be undone.")) {
             await db.collection("movies").doc(id).delete();
+            await db.collection("upcoming_series").doc(id).delete().catch(()=>{});
         }
     }
 
