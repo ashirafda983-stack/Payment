@@ -3,228 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieXtream | Official Download</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>J MOVIES | Next-Gen Entertainment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #00f2ff;
             --secondary: #7000ff;
-            --bg: #050505;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-dark: #030305;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-dim: #a1a1aa;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
 
         body {
-            background-color: var(--bg);
+            background-color: var(--bg-dark);
             color: white;
             overflow-x: hidden;
+            line-height: 1.6;
         }
 
-        /* --- DYNAMIC NEON BACKGROUND --- */
-        .orb {
+        /* --- BACKGROUND MESH --- */
+        .mesh-gradient {
             position: fixed;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            filter: blur(120px);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(at 0% 0%, rgba(0, 242, 255, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(112, 0, 255, 0.1) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(0, 242, 255, 0.05) 0px, transparent 50%);
             z-index: -1;
-            opacity: 0.4;
-        }
-        .orb-1 { top: -100px; left: -100px; background: var(--primary); animation: float 10s infinite alternate; }
-        .orb-2 { bottom: -100px; right: -100px; background: var(--secondary); animation: float 12s infinite alternate-reverse; }
-
-        @keyframes float {
-            from { transform: translate(0,0); }
-            to { transform: translate(100px, 50px); }
         }
 
-        /* --- GLASS NAVIGATION --- */
+        /* --- NAVIGATION --- */
         nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 8%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 8%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(15px);
-            position: sticky;
-            top: 0;
             z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        nav.scrolled {
+            background: rgba(3, 3, 5, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 15px 8%;
+            border-bottom: 1px solid var(--border);
         }
 
         .logo {
-            font-size: 26px;
-            font-weight: 800;
-            text-transform: uppercase;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
             letter-spacing: 2px;
-            background: linear-gradient(to right, #fff, var(--primary));
+            background: linear-gradient(90deg, var(--primary), #fff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+
         /* --- HERO SECTION --- */
         .hero {
+            height: 100vh;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
+            text-align: center;
+            padding: 0 5%;
+        }
+
+        .badge {
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            margin-bottom: 25px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 25px;
+            letter-spacing: -2px;
+        }
+
+        h1 span {
+            background: linear-gradient(180deg, #fff 30%, var(--text-dim));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            max-width: 600px;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        /* --- ADVANCED BUTTON --- */
+        .cta-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            position: relative;
+            background: var(--primary);
+            color: #000;
+            padding: 18px 35px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            overflow: hidden;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 242, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.05);
+            color: white;
+            padding: 18px 35px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            transition: 0.3s;
+        }
+
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+        /* --- BENTO GRID FEATURES --- */
+        .section-title {
             text-align: center;
             padding: 100px 5% 50px;
         }
 
-        .hero-glass {
-            background: var(--glass);
-            backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border);
-            border-radius: 40px;
-            padding: 60px 40px;
-            max-width: 900px;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-            margin-bottom: 60px;
-        }
-
-        .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; margin-bottom: 20px; line-height: 1.1; }
-        .hero p { color: #aaa; font-size: 18px; margin-bottom: 40px; }
-
-        /* PILL BUTTON */
-        .download-btn {
-            background: linear-gradient(135deg, var(--primary) 0%, #00a2ff 100%);
-            color: #000;
-            text-decoration: none;
-            padding: 18px 50px;
-            border-radius: 50px;
-            font-weight: 800;
-            font-size: 18px;
-            text-transform: uppercase;
-            display: inline-block;
-            transition: 0.3s;
-            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.4);
-        }
-
-        .download-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 242, 255, 0.6); }
-
-        /* --- SCREENSHOT GALLERY (YOUR IMAGES) --- */
-        .gallery-title { text-align: center; font-size: 24px; margin-bottom: 30px; color: var(--primary); font-weight: 600; }
-        
-        .gallery {
-            display: flex;
-            justify-content: center;
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 250px);
             gap: 20px;
-            flex-wrap: wrap;
-            padding: 0 5% 100px;
+            padding: 0 8% 100px;
         }
 
-        .phone-frame {
-            width: 280px;
-            border-radius: 35px;
+        .bento-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            position: relative;
             overflow: hidden;
-            border: 6px solid #1a1a1a;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
             transition: 0.4s;
         }
 
-        .phone-frame:hover { transform: scale(1.05) translateY(-10px); border-color: var(--primary); }
-
-        .phone-frame img { width: 100%; height: auto; display: block; }
-
-        /* --- CONTENT SECTION (LeoXtream Style) --- */
-        .movie-section { padding: 50px 8%; }
-        .grid-header { font-size: 22px; margin-bottom: 30px; border-left: 5px solid var(--primary); padding-left: 15px; }
-
-        .movie-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
+        .bento-item:hover {
+            border-color: var(--primary);
+            background: rgba(0, 242, 255, 0.02);
         }
 
-        .movie-card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            overflow: hidden;
-            transition: 0.3s;
-        }
+        .large { grid-column: span 2; }
+        .tall { grid-row: span 2; }
 
-        .movie-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-5px); border-color: var(--primary); }
+        .bento-item h3 { margin-bottom: 15px; font-size: 1.4rem; }
+        .bento-item p { color: var(--text-dim); font-size: 0.9rem; }
 
-        .poster-placeholder {
-            width: 100%;
-            height: 260px;
-            background: linear-gradient(45deg, #111, #222);
+        /* --- PHONE SHOWCASE ANIMATION --- */
+        .showcase-wrapper {
             display: flex;
-            align-items: center;
             justify-content: center;
-            color: #444;
-            font-weight: 800;
+            gap: 40px;
+            padding: 100px 5%;
+            perspective: 1000px;
         }
 
-        .movie-info { padding: 15px; }
-        .movie-info h4 { font-size: 14px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .movie-info span { color: var(--primary); font-size: 11px; font-weight: 600; }
+        .phone {
+            width: 280px;
+            height: 580px;
+            background: #111;
+            border: 8px solid #222;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8);
+            animation: float 6s infinite ease-in-out;
+        }
 
-        footer { text-align: center; padding: 50px; color: #444; font-size: 13px; border-top: 1px solid var(--glass-border); }
+        .phone:nth-child(2) { animation-delay: 1s; }
+        .phone:nth-child(3) { animation-delay: 2s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateX(5deg); }
+            50% { transform: translateY(-20px) rotateX(10deg); }
+        }
+
+        .phone img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 80px 8% 40px;
+            background: rgba(255,255,255,0.01);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+
+        .footer-col h4 { margin-bottom: 20px; color: var(--primary); }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 10px; color: var(--text-dim); cursor: pointer; }
+
+        @media (max-width: 1024px) {
+            .bento-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .bento-grid { grid-template-columns: 1fr; }
+            .showcase-wrapper { flex-direction: column; align-items: center; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
+    <div class="mesh-gradient"></div>
 
-    <nav>
-        <div class="logo">MovieXtream</div>
+    <nav id="navbar">
+        <div class="logo">J MOVIES</div>
+        <div class="nav-links">
+            <a href="#">Features</a>
+            <a href="#">Showcase</a>
+            <a href="#">Pricing</a>
+            <a href="#">Support</a>
+        </div>
+        <a href="#" class="btn-secondary" style="padding: 10px 20px; font-size: 0.8rem;">Login</a>
     </nav>
 
-    <header class="hero">
-        <div class="hero-glass">
-            <h1>Cinematic Escape in your Pocket.</h1>
-            <p>Experience the most advanced streaming UI with high-quality VJ translated movies and series.</p>
-            <a href="https://github.com/ashirafda983-stack/Payment/raw/refs/heads/main/MovieXtream_1.0.1.apk" class="download-btn">Download APK v1.0.1</a>
+    <section class="hero">
+        <div class="badge">V1.0.1 NOW AVAILABLE</div>
+        <h1><span>Cinematic Magic</span><br>In Your Pocket</h1>
+        <p>Experience the future of streaming. Exclusive VJ translations, ultra-low latency streaming, and 4K offline downloads. No ads, just entertainment.</p>
+        
+        <div class="cta-group">
+            <a href="https://github.com/ashirafda983-stack/Payment/raw/refs/heads/main/MovieXtream_1.0.1.apk" class="btn-primary">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4m4-5 5 5 5-5m-5 5V3"/></svg>
+                Download for Android
+            </a>
+            <a href="#" class="btn-secondary">Watch Trailer</a>
         </div>
+    </section>
 
-        <h2 class="gallery-title">App Interface</h2>
-        <div class="gallery">
-            <div class="phone-frame">
-                <img src="Screenshot_20260313-142311.jpg" alt="Home">
-            </div>
-            <div class="phone-frame">
-                <img src="Screenshot_20260313-142322.jpg" alt="Details">
-            </div>
-            <div class="phone-frame">
-                <img src="Screenshot_20260313-143348.jpg" alt="Search">
-            </div>
+    <div class="section-title">
+        <h2>Engineered for Performance</h2>
+    </div>
+
+    <section class="bento-grid">
+        <div class="bento-item large">
+            <h3>Exclusive VJ Talent</h3>
+            <p>The only app featuring real-time translated commentary from the world's best Video Jokers. Experience movies in your language, your style.</p>
         </div>
-    </header>
+        <div class="bento-item tall">
+            <h3>Offline Mode</h3>
+            <p>Smart-download tech that optimizes file size without losing 1080p quality. Watch anywhere, even in the dead zones.</p>
+        </div>
+        <div class="bento-item">
+            <h3>Fast Servers</h3>
+            <p>Global CDN ensures zero buffering.</p>
+        </div>
+        <div class="bento-item">
+            <h3>No Ads</h3>
+            <p>Pure, uninterrupted bliss.</p>
+        </div>
+        <div class="bento-item large">
+            <h3>Multi-Device Sync</h3>
+            <p>Start on your phone, finish on your Android TV. Your watch history stays perfectly in sync across all devices.</p>
+        </div>
+    </section>
 
-    <section class="movie-section">
-        <h3 class="grid-header">Trending Now</h3>
-        <div class="movie-grid">
-            <div class="movie-card">
-                <div class="poster-placeholder">MOVIE POSTER</div>
-                <div class="movie-info"><h4>The Dark Knight</h4><span>VJ JUNIOR</span></div>
-            </div>
-            <div class="movie-card">
-                <div class="poster-placeholder">MOVIE POSTER</div>
-                <div class="movie-info"><h4>Inception</h4><span>VJ ICE P</span></div>
-            </div>
-            <div class="movie-card">
-                <div class="poster-placeholder">MOVIE POSTER</div>
-                <div class="movie-info"><h4>The Avengers</h4><span>VJ JUNIOR</span></div>
-            </div>
-            <div class="movie-card">
-                <div class="poster-placeholder">MOVIE POSTER</div>
-                <div class="movie-info"><h4>Interstellar</h4><span>VJ MARK</span></div>
-            </div>
-            <div class="movie-card">
-                <div class="poster-placeholder">MOVIE POSTER</div>
-                <div class="movie-info"><h4>Gladiator II</h4><span>VJ JUNIOR</span></div>
-            </div>
+    <section class="showcase-wrapper">
+        <div class="phone">
+            <img src="screen1.jpg" alt="Interface 1">
+        </div>
+        <div class="phone">
+            <img src="screen2.jpg" alt="Interface 2">
+        </div>
+        <div class="phone">
+            <img src="screen3.jpg" alt="Interface 3">
         </div>
     </section>
 
     <footer>
-        &copy; 2026 MovieXtream. Built for the ultimate movie experience.
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div class="logo" style="margin-bottom: 20px;">J MOVIES</div>
+                <p style="color: var(--text-dim);">Redefining the digital cinema experience for the next generation of viewers.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Product</h4>
+                <ul>
+                    <li>Download APK</li>
+                    <li>iOS Beta</li>
+                    <li>TV Version</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li>Privacy Policy</li>
+                    <li>Terms of Use</li>
+                    <li>DMCA</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Social</h4>
+                <ul>
+                    <li>Telegram</li>
+                    <li>Instagram</li>
+                    <li>Twitter</li>
+                </ul>
+            </div>
+        </div>
+        <center style="color: var(--border); font-size: 0.8rem; margin-top: 50px;">
+            &copy; 2024 J MOVIES. ALL RIGHTS RESERVED.
+        </center>
     </footer>
 
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Simple Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.bento-item, .phone').forEach(el => {
+            el.style.opacity = 0;
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+            observer.observe(el);
+        });
+    </script>
 </body>
 </html>
