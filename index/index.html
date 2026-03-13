@@ -3,100 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieXtream - Official Store</title>
+    <title>MovieXtream | Official Download</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --accent: #00e5ff;
-            --bg-dark: #08080a;
-            --glass: rgba(255, 255, 255, 0.05);
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg);
             color: white;
-            line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* --- BACKGROUND EFFECTS --- */
-        .bg-glow {
+        /* --- DYNAMIC NEON BACKGROUND --- */
+        .orb {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 10% 10%, rgba(0, 229, 255, 0.05) 0%, transparent 50%),
-                        radial-gradient(circle at 90% 90%, rgba(0, 229, 255, 0.05) 0%, transparent 50%);
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(120px);
             z-index: -1;
+            opacity: 0.4;
+        }
+        .orb-1 { top: -100px; left: -100px; background: var(--primary); animation: float 10s infinite alternate; }
+        .orb-2 { bottom: -100px; right: -100px; background: var(--secondary); animation: float 12s infinite alternate-reverse; }
+
+        @keyframes float {
+            from { transform: translate(0,0); }
+            to { transform: translate(100px, 50px); }
         }
 
-        /* --- NAVIGATION --- */
+        /* --- GLASS NAVIGATION --- */
         nav {
-            padding: 20px 8%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(8, 8, 10, 0.8);
-            backdrop-filter: blur(10px);
+            padding: 20px 8%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(15px);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
             border-bottom: 1px solid var(--glass-border);
         }
 
         .logo {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 800;
-            color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 2px;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         /* --- HERO SECTION --- */
-        header {
-            padding: 100px 8% 60px;
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
+            padding: 100px 5% 50px;
         }
 
-        .hero-card {
+        .hero-glass {
             background: var(--glass);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
-            padding: 60px 40px;
             border-radius: 40px;
+            padding: 60px 40px;
             max-width: 900px;
-            margin: 0 auto;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            margin-bottom: 60px;
         }
 
-        h1 { font-size: 50px; margin-bottom: 20px; font-weight: 800; }
-        p { color: #888; margin-bottom: 40px; font-size: 18px; }
+        .hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 800; margin-bottom: 20px; line-height: 1.1; }
+        .hero p { color: #aaa; font-size: 18px; margin-bottom: 40px; }
 
-        .btn-main {
-            background: var(--accent);
-            color: black;
-            padding: 18px 45px;
-            border-radius: 50px;
+        /* PILL BUTTON */
+        .download-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, #00a2ff 100%);
+            color: #000;
             text-decoration: none;
-            font-weight: 700;
+            padding: 18px 50px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 18px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
             display: inline-block;
-            box-shadow: 0 10px 30px rgba(0, 229, 255, 0.3);
+            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.4);
         }
 
-        .btn-main:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 229, 255, 0.5); }
+        .download-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 242, 255, 0.6); }
 
-        /* --- MOVIE GRID SECTION --- */
-        .content-section { padding: 60px 8%; }
-        .section-title { font-size: 28px; margin-bottom: 30px; border-left: 4px solid var(--accent); padding-left: 15px; }
+        /* --- SCREENSHOT GALLERY (YOUR IMAGES) --- */
+        .gallery-title { text-align: center; font-size: 24px; margin-bottom: 30px; color: var(--primary); font-weight: 600; }
+        
+        .gallery {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 0 5% 100px;
+        }
+
+        .phone-frame {
+            width: 280px;
+            border-radius: 35px;
+            overflow: hidden;
+            border: 6px solid #1a1a1a;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            transition: 0.4s;
+        }
+
+        .phone-frame:hover { transform: scale(1.05) translateY(-10px); border-color: var(--primary); }
+
+        .phone-frame img { width: 100%; height: auto; display: block; }
+
+        /* --- CONTENT SECTION (LeoXtream Style) --- */
+        .movie-section { padding: 50px 8%; }
+        .grid-header { font-size: 22px; margin-bottom: 30px; border-left: 5px solid var(--primary); padding-left: 15px; }
 
         .movie-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
         }
 
         .movie-card {
@@ -104,95 +143,87 @@
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             overflow: hidden;
-            transition: 0.4s;
-            position: relative;
+            transition: 0.3s;
         }
 
-        .movie-card:hover { transform: scale(1.05); border-color: var(--accent); }
+        .movie-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-5px); border-color: var(--primary); }
 
-        .movie-thumb {
+        .poster-placeholder {
             width: 100%;
-            height: 300px;
-            background: #151518;
+            height: 260px;
+            background: linear-gradient(45deg, #111, #222);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
             color: #444;
+            font-weight: 800;
         }
 
         .movie-info { padding: 15px; }
-        .movie-info h3 { font-size: 16px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .movie-info span { color: var(--accent); font-size: 12px; font-weight: 600; }
+        .movie-info h4 { font-size: 14px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .movie-info span { color: var(--primary); font-size: 11px; font-weight: 600; }
 
-        /* --- FOOTER --- */
-        footer {
-            padding: 60px 8%;
-            text-align: center;
-            border-top: 1px solid var(--glass-border);
-            margin-top: 50px;
-            color: #555;
-            font-size: 14px;
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 32px; }
-            .hero-card { padding: 40px 20px; }
-        }
+        footer { text-align: center; padding: 50px; color: #444; font-size: 13px; border-top: 1px solid var(--glass-border); }
     </style>
 </head>
 <body>
 
-    <div class="bg-glow"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
 
     <nav>
         <div class="logo">MovieXtream</div>
     </nav>
 
-    <header>
-        <div class="hero-card">
-            <h1>Premium Cinematic Experience</h1>
-            <p>Download the official MovieXtream app to enjoy your favorite movies and series with VJ translations in high-end glass UI.</p>
-            <a href="https://github.com/ashirafda983-stack/Payment/raw/refs/heads/main/MovieXtream_1.0.1.apk" class="btn-main">Download APK v1.0.1</a>
+    <header class="hero">
+        <div class="hero-glass">
+            <h1>Cinematic Escape in your Pocket.</h1>
+            <p>Experience the most advanced streaming UI with high-quality VJ translated movies and series.</p>
+            <a href="https://github.com/ashirafda983-stack/Payment/raw/refs/heads/main/MovieXtream_1.0.1.apk" class="download-btn">Download APK v1.0.1</a>
+        </div>
+
+        <h2 class="gallery-title">App Interface</h2>
+        <div class="gallery">
+            <div class="phone-frame">
+                <img src="Screenshot_20260313-142311.jpg" alt="Home">
+            </div>
+            <div class="phone-frame">
+                <img src="Screenshot_20260313-142322.jpg" alt="Details">
+            </div>
+            <div class="phone-frame">
+                <img src="Screenshot_20260313-143348.jpg" alt="Search">
+            </div>
         </div>
     </header>
 
-    <section class="content-section">
-        <h2 class="section-title">Featured Content</h2>
+    <section class="movie-section">
+        <h3 class="grid-header">Trending Now</h3>
         <div class="movie-grid">
             <div class="movie-card">
-                <div class="movie-thumb">THE JOURNEY OF LEGEND</div>
-                <div class="movie-info">
-                    <h3>The Journey of Legend</h3>
-                    <span>VJ ICE P • 2025</span>
-                </div>
+                <div class="poster-placeholder">MOVIE POSTER</div>
+                <div class="movie-info"><h4>The Dark Knight</h4><span>VJ JUNIOR</span></div>
             </div>
             <div class="movie-card">
-                <div class="movie-thumb">WAR MACHINE</div>
-                <div class="movie-info">
-                    <h3>War Machine</h3>
-                    <span>VJ JUNIOR • 2024</span>
-                </div>
+                <div class="poster-placeholder">MOVIE POSTER</div>
+                <div class="movie-info"><h4>Inception</h4><span>VJ ICE P</span></div>
             </div>
             <div class="movie-card">
-                <div class="movie-thumb">THE 'BURBS</div>
-                <div class="movie-info">
-                    <h3>The 'Burbs</h3>
-                    <span>VJ JUNIOR • 2024</span>
-                </div>
+                <div class="poster-placeholder">MOVIE POSTER</div>
+                <div class="movie-info"><h4>The Avengers</h4><span>VJ JUNIOR</span></div>
             </div>
             <div class="movie-card">
-                <div class="movie-thumb">PUSHED OFF A PLANE</div>
-                <div class="movie-info">
-                    <h3>Pushed Off A Plane</h3>
-                    <span>VJ JUNIOR • 2024</span>
-                </div>
+                <div class="poster-placeholder">MOVIE POSTER</div>
+                <div class="movie-info"><h4>Interstellar</h4><span>VJ MARK</span></div>
+            </div>
+            <div class="movie-card">
+                <div class="poster-placeholder">MOVIE POSTER</div>
+                <div class="movie-info"><h4>Gladiator II</h4><span>VJ JUNIOR</span></div>
             </div>
         </div>
     </section>
 
     <footer>
-        &copy; 2026 MovieXtream. All rights reserved.
+        &copy; 2026 MovieXtream. Built for the ultimate movie experience.
     </footer>
 
 </body>
