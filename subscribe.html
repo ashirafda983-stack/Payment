@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pearlpix | Access Unlocked</title>
+    <title>MovieXtream | Access Unlocked</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -98,7 +98,7 @@
     <div class="page-panel">
         <div class="header">
             <h1>PREMIUM ACCESS</h1>
-            <p>Choose a plan to continue streaming on Pearlpix</p>
+            <p>Choose a plan to continue streaming on MovieXtream</p>
         </div>
 
         <div class="features-console">
@@ -169,7 +169,6 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Default selected plan (Monthly)
         let selectedPlanData = {
             name: 'Monthly Plan',
             price: '15,000 ugx',
@@ -194,7 +193,6 @@
             btn.innerText = "PROCESSING...";
             btn.disabled = true;
 
-            // Date Formatting Logic
             const now = new Date();
             const expiry = new Date();
             expiry.setDate(now.getDate() + selectedPlanData.days);
@@ -204,7 +202,6 @@
             const expireDate = expiry.toLocaleDateString('en-US', dateOptions);
 
             try {
-                // Store in Firestore exactly where profile.html looks for it
                 await db.collection('users').doc(user.uid).set({
                     subscription: {
                         planName: selectedPlanData.name,
@@ -215,12 +212,11 @@
                     }
                 }, { merge: true });
 
-                // Success UI
                 document.getElementById('success-screen').style.display = 'flex';
                 localStorage.setItem('isSubscribed', 'true');
                 
                 setTimeout(() => {
-                    window.location.href = "profile.html";
+                    window.location.href = "details.html";
                 }, 2000);
 
             } catch (error) {
