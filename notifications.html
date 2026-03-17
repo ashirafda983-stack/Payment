@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Uploads | LeoXtream</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>New Uploads | Pearlpix</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -24,9 +24,11 @@
             font-family: 'Segoe UI', system-ui, sans-serif; 
             margin: 0; 
             padding: 20px;
-            padding-top: 100px; /* Space for the system bar aesthetic */
-            padding-bottom: 100px;
+            padding-top: calc(100px + env(safe-area-inset-top)); 
+            padding-bottom: calc(40px + env(safe-area-inset-bottom));
+            min-height: 100dvh;
             -webkit-font-smoothing: antialiased;
+            box-sizing: border-box;
         }
 
         /* LIGHT LINE ANIMATION KEYFRAMES */
@@ -38,13 +40,14 @@
             align-items: center; 
             justify-content: space-between;
             position: fixed;
-            top: 15px;
+            top: calc(15px + env(safe-area-inset-top));
             left: 50%;
             transform: translateX(-50%);
             width: 92%;
             z-index: 100;
             background: rgba(18, 18, 18, 0.65);
             backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             padding: 15px 20px;
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -81,7 +84,7 @@
             background: rgba(0,0,0,0.4); 
             color: var(--text-primary); 
             outline: none; 
-            font-size: 14px; 
+            font-size: 16px; /* Prevents auto-zoom on iOS */
             transition: all 0.3s ease;
             box-sizing: border-box;
         }
@@ -103,7 +106,7 @@
             position: relative;
             background: var(--card);
             border-radius: 16px;
-            padding: 2px; /* Border thickness */
+            padding: 2px; 
             overflow: hidden;
             animation: slideUp 0.6s ease-out;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
@@ -244,6 +247,16 @@
         @keyframes shimmerPulse { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
         .shim-card { height: 140px; width: 100%; }
 
+        /* FOOTER */
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -269,8 +282,11 @@
         </div>
     </div>
 
+    <div class="footer">
+        © 2026 Pearlpix. All rights reserved.
+    </div>
+
 <script>
-    // Search Functions
     function toggleSearch() {
         const searchContainer = document.getElementById('searchContainer');
         const searchInput = document.getElementById('searchInput');
@@ -280,7 +296,7 @@
         } else {
             searchContainer.style.display = 'none';
             searchInput.value = '';
-            filterList(); // Reset the list
+            filterList();
         }
     }
 
@@ -297,7 +313,6 @@
         });
     }
 
-    // Configuration synchronized with your index.html and admin.html
     const firebaseConfig = { 
         apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
         authDomain: "leoxtream-46cdf.firebaseapp.com", 
@@ -308,12 +323,10 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fetching data using timestamp ordering
     db.collection("movies").orderBy("timestamp", "desc").limit(20).onSnapshot(snap => {
         const listContainer = document.getElementById('notifList');
-        
-        // Only clear if we aren't currently searching to prevent search interruption
         const currentSearch = document.getElementById('searchInput').value;
+        
         if (!currentSearch) {
             listContainer.innerHTML = ''; 
         }
@@ -326,13 +339,10 @@
         let newHTML = '';
         snap.forEach(doc => {
             const m = doc.data();
-            
-            // Extracting required info: VJ name, Poster, Title, Overview
-            const vjName = m.vj || "LeoXtream"; 
+            const vjName = m.vj || "Pearlpix"; 
             const posterUrl = m.poster || m.banner || 'https://via.placeholder.com/80x110?text=No+Poster';
             const detailPageLink = `details.html?id=${doc.id}`;
 
-            // Format timestamp relative to "Just Now"
             let dateStr = 'Just Now';
             if (m.timestamp) {
                 const date = new Date(m.timestamp.seconds * 1000);
@@ -355,10 +365,8 @@
                 }
             }
 
-            // Overview fallback text
-            const overviewText = m.overview || 'New content is now available on LeoXtream. Watch or download now.';
+            const overviewText = m.overview || 'New content is now available on Pearlpix. Watch or download now.';
 
-            // Render the advanced glass UI card
             newHTML += `
                 <div class="update-card" onclick="location.href='${detailPageLink}'">
                     <div class="card-inner">
@@ -378,11 +386,9 @@
                 </div>`;
         });
 
-        // Update DOM and re-apply search filter if active
         if (!currentSearch) {
             listContainer.innerHTML = newHTML;
         } else {
-            // If user is currently searching during a database snapshot update
             listContainer.innerHTML = newHTML;
             filterList(); 
         }
