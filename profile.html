@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile & Security | J MOVIES Admin</title>
+    <title>Profile & Security | MovieXtream Admin</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -324,74 +324,86 @@
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> BACK</a>
     </div>
 
-    <div class="card">
-        <div class="section-title">My Subscription</div>
-        
-        <div class="info-row">
-            <span class="info-label">Current Plan :</span>
-            <div class="info-value" id="currentPlanName">Loading...</div>
-        </div>
-        
-        <div class="expire-text" id="expireDateText">Fetching subscription details...</div>
-        
-        <a href="subscribe.html" class="btn-upgrade">Upgrade Plan</a>
-    </div>
-
-    <div class="card" id="invoiceCard">
-        <div class="section-title">Last Invoice</div>
-        
-        <div class="info-row">
-            <span class="info-label">Date :</span>
-            <div class="info-value" id="invoiceDate">--</div>
-        </div>
-        
-        <div class="info-row">
-            <span class="info-label">Plan :</span>
-            <div class="info-value" id="invoicePlan">--</div>
-        </div>
-        
-        <div class="info-row">
-            <span class="info-label">Amount :</span>
-            <div class="info-value" id="invoiceAmount">--</div>
+    <div id="loggedOutView" style="display: none;">
+        <div class="card" style="text-align: center; padding: 60px 20px;">
+            <div class="section-title accent-title" style="justify-content: center;">
+                <i class="fas fa-user-lock"></i> SIGN IN REQUIRED
+            </div>
+            <p style="color: #64748b; font-size: 15px; margin-bottom: 30px;">You must be signed in to your account to view your subscription details and manage security settings.</p>
+            <a href="login.html" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px; justify-content: center;">
+                <i class="fas fa-sign-in-alt"></i> PROCEED TO SIGN IN
+            </a>
         </div>
     </div>
-
-    <div class="card">
-        <div class="section-title accent-title"><i class="fas fa-user-circle"></i> Account Details</div>
-        <div id="userInfo">
-            <p id="userEmail" style="color: #cbd5e1; margin: 5px 0; font-size: 16px;">Loading email...</p>
-            <p id="userUid" style="color: #64748b; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 1px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; display: inline-block; margin-top: 10px;"></p>
-        </div>
-        <div style="margin-top: 25px;">
-            <button class="btn btn-danger" onclick="logoutUser()">
-                <i class="fas fa-sign-out-alt"></i> LOGOUT
-            </button>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="section-title accent-title"><i class="fas fa-shield-alt"></i> Security Update</div>
-        
-        <div class="input-group">
-            <label>New Password</label>
-            <input type="password" id="newPassword" placeholder="Enter at least 6 characters">
+    <div id="loggedInContent" style="display: none;">
+        <div class="card">
+            <div class="section-title">My Subscription</div>
+            
+            <div class="info-row">
+                <span class="info-label">Current Plan :</span>
+                <div class="info-value" id="currentPlanName">Loading...</div>
+            </div>
+            
+            <div class="expire-text" id="expireDateText">Fetching subscription details...</div>
+            
+            <a href="subscribe.html" class="btn-upgrade">Upgrade Plan</a>
         </div>
 
-        <div class="input-group">
-            <label>Confirm New Password</label>
-            <input type="password" id="confirmPassword" placeholder="Repeat your new password">
+        <div class="card" id="invoiceCard">
+            <div class="section-title">Last Invoice</div>
+            
+            <div class="info-row">
+                <span class="info-label">Date :</span>
+                <div class="info-value" id="invoiceDate">--</div>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Plan :</span>
+                <div class="info-value" id="invoicePlan">--</div>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Amount :</span>
+                <div class="info-value" id="invoiceAmount">--</div>
+            </div>
         </div>
 
-        <div class="actions">
-            <button class="btn btn-primary" onclick="updatePassword()">
-                <i class="fas fa-key"></i> UPDATE PASSWORD
-            </button>
+        <div class="card">
+            <div class="section-title accent-title"><i class="fas fa-user-circle"></i> Account Details</div>
+            <div id="userInfo">
+                <p id="userEmail" style="color: #cbd5e1; margin: 5px 0; font-size: 16px;">Loading email...</p>
+                <p id="userUid" style="color: #64748b; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 1px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; display: inline-block; margin-top: 10px;"></p>
+            </div>
+            <div style="margin-top: 25px;">
+                <button class="btn btn-danger" onclick="logoutUser()">
+                    <i class="fas fa-sign-out-alt"></i> LOGOUT
+                </button>
+            </div>
         </div>
-        
-        <div id="statusMsg" class="status-msg"></div>
+
+        <div class="card">
+            <div class="section-title accent-title"><i class="fas fa-shield-alt"></i> Security Update</div>
+            
+            <div class="input-group">
+                <label>New Password</label>
+                <input type="password" id="newPassword" placeholder="Enter at least 6 characters">
+            </div>
+
+            <div class="input-group">
+                <label>Confirm New Password</label>
+                <input type="password" id="confirmPassword" placeholder="Repeat your new password">
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="updatePassword()">
+                    <i class="fas fa-key"></i> UPDATE PASSWORD
+                </button>
+            </div>
+            
+            <div id="statusMsg" class="status-msg"></div>
+        </div>
     </div>
 </div>
-
 <div class="modal-overlay" id="logoutModal">
     <div class="modal-content">
         <div class="modal-text" id="modalPrompt">Are you sure you want to log out?</div>
@@ -401,6 +413,7 @@
         </div>
     </div>
 </div>
+
 <script>
     const firebaseConfig = { 
         apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
@@ -415,7 +428,12 @@
     const db = firebase.firestore();
 
     auth.onAuthStateChanged(user => {
+        const loggedInContent = document.getElementById('loggedInContent');
+        const loggedOutView = document.getElementById('loggedOutView');
+
         if (user) {
+            loggedInContent.style.display = 'block';
+            loggedOutView.style.display = 'none';
             document.getElementById('userEmail').innerText = "Logged in as: " + user.email;
             document.getElementById('userUid').innerText = "UID: " + user.uid;
 
@@ -442,6 +460,9 @@
             });
 
         } else {
+            loggedInContent.style.display = 'none';
+            loggedOutView.style.display = 'block';
+            
             localStorage.removeItem('continueWatching');
             localStorage.removeItem('recentlyPlayed');
             localStorage.removeItem('savedMovies');
@@ -449,7 +470,6 @@
             Object.keys(localStorage).forEach(key => {
                 if (key.startsWith('resume_')) localStorage.removeItem(key);
             });
-            window.location.href = "index.html"; 
         }
     });
 
