@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Security | J MOVIES Admin</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #010409;
+            --accent: #00f2ff;
+            --accent-glow: rgba(0, 242, 255, 0.5);
+            --glass: rgba(10, 20, 35, 0.7);
+            --border: rgba(0, 242, 255, 0.15);
+            --danger: #ff2d55;
+            --success: #00ff88;
+            --input-bg: rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 50% -20%, #003355 0%, var(--bg) 80%),
+                url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Futuristic Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 242, 255, 0.05);
+            position: relative;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: white;
+            border: 1px solid var(--border);
+            padding: 12px 24px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            letter-spacing: 1px;
+        }
+
+        .back-btn:hover {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: scale(1.05);
+        }
+
+        /* Enhanced Advanced Cards */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 242, 255, 0.4);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--accent), transparent);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .section-title.accent-title {
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            justify-content: flex-start;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* Subscription & Invoice specific styles */
+        .info-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: white;
+            font-size: 15px;
+            min-width: 100px;
+        }
+
+        .info-value {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: #e2e8f0;
+            flex-grow: 1;
+            font-size: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .expire-text {
+            color: #94a3b8;
+            font-size: 14px;
+            margin: 15px 0 20px;
+            font-weight: 500;
+        }
+
+        .btn-upgrade {
+            background: linear-gradient(90deg, #ff7b00, #ff007b);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 0, 123, 0.3);
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.3s;
+        }
+
+        .btn-upgrade:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 0, 123, 0.5);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.3s;
+            font-size: 15px;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            background: rgba(0, 242, 255, 0.05);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .btn-primary { 
+            background: var(--accent); 
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 242, 255, 0.3);
+        }
+        
+        .btn-danger { 
+            background: transparent; 
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn:hover { transform: translateY(-3px); }
+
+        .status-msg {
+            margin-top: 20px;
+            font-size: 14px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+            background: rgba(0,0,0,0.2);
+            border-left: 3px solid transparent;
+        }
+
+        /* CUSTOM MODAL UI */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 2, 10, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--glass);
+            border: 1px solid var(--accent);
+            padding: 40px;
+            border-radius: 24px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.2);
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-text {
+            font-size: 18px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            min-width: 100px;
+        }
+
+        .btn-ok { background: var(--accent); color: #000; }
+        .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0; font-size: 24px; letter-spacing: 1px;">My Profile</h1>
+            <p style="margin:5px 0 0; color:#64748b; font-size:14px; font-weight: 500;">Manage your account security</p>
+        </div>
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> BACK</a>
+    </div>
+
+    <div class="card">
+        <div class="section-title">My Subscription</div>
+        
+        <div class="info-row">
+            <span class="info-label">Current Plan :</span>
+            <div class="info-value" id="currentPlanName">Loading...</div>
+        </div>
+        
+        <div class="expire-text" id="expireDateText">Fetching subscription details...</div>
+        
+        <a href="subscribe.html" class="btn-upgrade">Upgrade Plan</a>
+    </div>
+
+    <div class="card" id="invoiceCard">
+        <div class="section-title">Last Invoice</div>
+        
+        <div class="info-row">
+            <span class="info-label">Date :</span>
+            <div class="info-value" id="invoiceDate">--</div>
+        </div>
+        
+        <div class="info-row">
+            <span class="info-label">Plan :</span>
+            <div class="info-value" id="invoicePlan">--</div>
+        </div>
+        
+        <div class="info-row">
+            <span class="info-label">Amount :</span>
+            <div class="info-value" id="invoiceAmount">--</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title accent-title"><i class="fas fa-user-circle"></i> Account Details</div>
+        <div id="userInfo">
+            <p id="userEmail" style="color: #cbd5e1; margin: 5px 0; font-size: 16px;">Loading email...</p>
+            <p id="userUid" style="color: #64748b; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 1px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; display: inline-block; margin-top: 10px;"></p>
+        </div>
+        <div style="margin-top: 25px;">
+            <button class="btn btn-danger" onclick="logoutUser()">
+                <i class="fas fa-sign-out-alt"></i> LOGOUT
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title accent-title"><i class="fas fa-shield-alt"></i> Security Update</div>
+        
+        <div class="input-group">
+            <label>New Password</label>
+            <input type="password" id="newPassword" placeholder="Enter at least 6 characters">
+        </div>
+
+        <div class="input-group">
+            <label>Confirm New Password</label>
+            <input type="password" id="confirmPassword" placeholder="Repeat your new password">
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="updatePassword()">
+                <i class="fas fa-key"></i> UPDATE PASSWORD
+            </button>
+        </div>
+        
+        <div id="statusMsg" class="status-msg"></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="logoutModal">
+    <div class="modal-content">
+        <div class="modal-text" id="modalPrompt">Are you sure you want to log out?</div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-cancel" onclick="closeModal()">CANCEL</button>
+            <button class="modal-btn btn-ok" onclick="confirmLogout()">OK</button>
+        </div>
+    </div>
+</div>
+<script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
+        authDomain: "leoxtream-46cdf.firebaseapp.com", 
+        projectId: "leoxtream-46cdf", 
+        appId: "1:198227069591:web:a86310e5dc58b845abf7d2",
+        databaseURL: "https://fnh-fast-vip-default-rtdb.firebaseio.com"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('userEmail').innerText = "Logged in as: " + user.email;
+            document.getElementById('userUid').innerText = "UID: " + user.uid;
+
+            // Fetch Subscription Data from Firestore
+            db.collection('users').doc(user.uid).get().then(doc => {
+                if (doc.exists && doc.data().subscription) {
+                    const subData = doc.data().subscription;
+                    document.getElementById('currentPlanName').innerText = subData.planName;
+                    document.getElementById('expireDateText').innerText = "Subscription expires on " + subData.expireDate;
+                    
+                    document.getElementById('invoiceDate').innerText = subData.invoiceDate;
+                    document.getElementById('invoicePlan').innerText = subData.planName;
+                    document.getElementById('invoiceAmount').innerText = subData.amount;
+                } else {
+                    // Fallback if user has no subscription history
+                    document.getElementById('currentPlanName').innerText = "No Active Plan";
+                    document.getElementById('expireDateText').innerText = "Subscribe to unlock premium features.";
+                    document.getElementById('invoiceCard').style.display = 'none';
+                }
+            }).catch(error => {
+                console.error("Error fetching subscription data:", error);
+                document.getElementById('currentPlanName').innerText = "Error loading data";
+                document.getElementById('expireDateText').innerText = "Please refresh the page.";
+            });
+
+        } else {
+            localStorage.removeItem('continueWatching');
+            localStorage.removeItem('recentlyPlayed');
+            localStorage.removeItem('savedMovies');
+            localStorage.removeItem('lastUserUid');
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('resume_')) localStorage.removeItem(key);
+            });
+            window.location.href = "login.html"; 
+        }
+    });
+
+    async function updatePassword() {
+        const newPass = document.getElementById('newPassword').value;
+        const confirmPass = document.getElementById('confirmPassword').value;
+        const statusMsg = document.getElementById('statusMsg');
+        const user = auth.currentUser;
+
+        statusMsg.style.display = "none";
+
+        if (newPass.length < 6) {
+            showStatus("Password must be at least 6 characters.", "var(--danger)");
+            return;
+        }
+        if (newPass !== confirmPass) {
+            showStatus("Passwords do not match!", "var(--danger)");
+            return;
+        }
+
+        try {
+            await user.updatePassword(newPass);
+            showStatus("Password updated successfully!", "var(--success)");
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        } catch (error) {
+            if (error.code === 'auth/requires-recent-login') {
+                showStatus("Please re-login to change password.", "var(--danger)");
+            } else {
+                showStatus(error.message, "var(--danger)");
+            }
+        }
+    }
+
+    // Modal Controls
+    function logoutUser() {
+        document.getElementById('logoutModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('logoutModal').style.display = 'none';
+    }
+
+    function confirmLogout() {
+        auth.signOut();
+    }
+
+    function showStatus(text, color) {
+        const statusMsg = document.getElementById('statusMsg');
+        statusMsg.innerText = text;
+        statusMsg.style.color = color;
+        statusMsg.style.borderColor = color;
+        statusMsg.style.display = "block";
+    }
+
+    window.addEventListener('popstate', function (event) {
+        window.location.href = "index.html";
+    });
+</script>
+
+</body>
+</html>
