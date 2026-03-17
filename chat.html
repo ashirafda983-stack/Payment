@@ -17,7 +17,7 @@
             --user-msg: rgba(0, 229, 255, 0.15); 
             --border: rgba(0, 229, 255, 0.3); 
         }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         
         @keyframes rotateBorder { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -116,16 +116,13 @@
         typing.style.display = 'flex';
         chatWin.scrollTop = chatWin.scrollHeight;
 
-        // --- IMPROVED CLEANING FOR HOUSE TRAP ---
         const cleanQuery = rawQuery.toLowerCase()
             .replace(/\b(play|watch|show|movie|series|the|for|me|called)\b/g, "")
             .trim();
 
-        // 1. SEARCH LOCAL DB FIRST
         const snap = await db.collection("movies").get();
         const movies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         
-        // Strict Fuse settings to prevent "House Trap" from hitting "Trap House"
         const fuse = new Fuse(movies, { keys: ['title'], threshold: 0.3, distance: 10 });
         const localResult = fuse.search(cleanQuery);
 
@@ -133,10 +130,8 @@
 
         if (localResult.length > 0) {
             const m = localResult[0].item;
-            // Check for episodes array specifically for Mobland
             movieData = { type: 'play', id: m.id, title: m.title, poster: m.poster || '', episodes: m.episodes || null };
         } else {
-            // 2. GLOBAL TMDB SEARCH
             const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(cleanQuery)}`);
             const data = await res.json();
             if(data.results && data.results.length > 0) {
@@ -189,7 +184,6 @@
         let actionArea = '';
         if(data.type === 'play') {
             if(data.episodes && Array.isArray(data.episodes)) {
-                // RENDER EPISODES FOR MOBLAND
                 actionArea = `<div class="ep-container">`;
                 data.episodes.forEach((ep, idx) => {
                     actionArea += `<button class="ep-pill" onclick="location.href='details.html?id=${data.id}&link=${ep.link}'">EP ${idx + 1}</button>`;
