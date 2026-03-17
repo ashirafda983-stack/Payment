@@ -103,15 +103,15 @@
             font-family: inherit;
         }
         
-        /* Updated Responsive Grid Layout */
+        /* Updated Responsive Grid Layout for 110px width */
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
             gap: 15px; 
             justify-items: center; 
         }
 
-        /* Updated Premium Movie Card to fit layout */
+        /* Updated Movie Card dimensions (110px x 170px) */
         .card { 
             position: relative; 
             width: 100%; 
@@ -123,7 +123,7 @@
 
         .card-img-wrapper {
             width: 100%; 
-            height: 145px; 
+            height: 170px; 
             border-radius: 12px; 
             overflow: hidden;
             border: 1px solid var(--border);
@@ -181,7 +181,7 @@
             flex-direction: column;
             gap: 8px;
         }
-        .shimmer-img { height: 145px; border-radius: 12px; }
+        .shimmer-img { height: 170px; border-radius: 12px; }
         .shimmer-text { height: 10px; width: 80%; border-radius: 4px; align-self: center; }
 
         #no-results {
