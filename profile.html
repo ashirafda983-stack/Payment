@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile & Security | MovieXtream Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Profile & Security | Pearlpix</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -12,26 +12,31 @@
     <style>
         :root {
             --bg: #050505;
-            --accent: #ff2a5f;
-            --accent-glow: rgba(255, 42, 95, 0.5);
+            --accent: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, 0.5);
             --glass: rgba(5, 5, 5, 0.8);
-            --border: rgba(255, 42, 95, 0.3);
+            --border: rgba(0, 229, 255, 0.3);
             --danger: #ff2d55;
             --success: #00ff88;
             --input-bg: rgba(0, 0, 0, 0.4);
+            --text-secondary: #94a3b8;
         }
 
         body {
             background: var(--bg);
             background-image: 
-                radial-gradient(circle at 50% -20%, #1a0505 0%, var(--bg) 80%),
+                radial-gradient(circle at 50% -20%, #001a1a 0%, var(--bg) 80%),
                 url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
-            min-height: 100vh;
+            min-height: 100dvh;
             padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top));
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
             overflow-x: hidden;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
@@ -45,7 +50,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Futuristic Header */
+        /* Responsive Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -53,11 +58,20 @@
             padding: 25px;
             background: var(--glass);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 24px;
             border: 1px solid var(--border);
             margin-bottom: 30px;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(255, 42, 95, 0.05);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
             position: relative;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        @media (max-width: 580px) {
+            .header { padding: 20px; text-align: center; justify-content: center; }
+            .header div { width: 100%; }
+            .back-btn { width: 100%; justify-content: center; order: 2; }
         }
 
         .back-btn {
@@ -73,6 +87,7 @@
             gap: 10px;
             transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             letter-spacing: 1px;
+            font-size: 14px;
         }
 
         .back-btn:hover {
@@ -86,6 +101,7 @@
         .card {
             background: var(--glass);
             backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 24px;
             padding: 30px;
             margin-bottom: 25px;
@@ -95,8 +111,10 @@
             transition: 0.3s;
         }
 
+        @media (max-width: 480px) { .card { padding: 20px; } }
+
         .card:hover {
-            border-color: rgba(255, 42, 95, 0.4);
+            border-color: rgba(0, 229, 255, 0.4);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
         }
 
@@ -119,30 +137,29 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            justify-content: center;
         }
         
         .section-title.accent-title {
             color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 2px;
-            justify-content: flex-start;
             text-shadow: 0 0 10px var(--accent-glow);
         }
 
-        /* Subscription & Invoice specific styles */
+        /* Subscription & Info Rows */
         .info-row {
             display: flex;
             align-items: center;
             margin-bottom: 15px;
             gap: 15px;
+            flex-wrap: wrap;
         }
 
         .info-label {
             font-weight: bold;
             color: white;
             font-size: 15px;
-            min-width: 100px;
+            min-width: 120px;
         }
 
         .info-value {
@@ -151,45 +168,45 @@
             border-radius: 8px;
             color: #e2e8f0;
             flex-grow: 1;
-            font-size: 15px;
+            font-size: 14px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            word-break: break-all;
         }
 
         .expire-text {
-            color: #94a3b8;
+            color: var(--text-secondary);
             font-size: 14px;
             margin: 15px 0 20px;
             font-weight: 500;
         }
 
         .btn-upgrade {
-            background: linear-gradient(90deg, #ff7b00, #ff007b);
-            color: white;
+            background: linear-gradient(90deg, #00e5ff, #007bff);
+            color: #000;
             border: none;
             padding: 12px 24px;
             border-radius: 20px;
-            font-weight: bold;
+            font-weight: 800;
             font-size: 14px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 0, 123, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
             text-decoration: none;
             display: inline-block;
             transition: 0.3s;
+            text-align: center;
         }
 
         .btn-upgrade:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(255, 0, 123, 0.5);
+            box-shadow: 0 6px 20px rgba(0, 229, 255, 0.5);
         }
 
-        .input-group {
-            margin-bottom: 20px;
-        }
+        .input-group { margin-bottom: 20px; }
 
         .input-group label {
             display: block;
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-secondary);
             margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -205,13 +222,13 @@
             box-sizing: border-box;
             outline: none;
             transition: 0.3s;
-            font-size: 15px;
+            font-size: 16px;
         }
 
         input:focus {
             border-color: var(--accent);
-            background: rgba(255, 42, 95, 0.05);
-            box-shadow: 0 0 15px rgba(255, 42, 95, 0.1);
+            background: rgba(0, 229, 255, 0.05);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.1);
         }
 
         .btn {
@@ -232,7 +249,7 @@
         .btn-primary { 
             background: var(--accent); 
             color: #000;
-            box-shadow: 0 4px 15px rgba(255, 42, 95, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
         }
         
         .btn-danger { 
@@ -265,21 +282,23 @@
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 2, 10, 0.85);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 20px;
         }
 
         .modal-content {
             background: var(--glass);
             border: 1px solid var(--accent);
-            padding: 40px;
+            padding: 30px;
             border-radius: 24px;
             max-width: 400px;
-            width: 90%;
+            width: 100%;
             text-align: center;
-            box-shadow: 0 0 50px rgba(255, 42, 95, 0.2);
+            box-shadow: 0 0 50px rgba(0, 229, 255, 0.2);
             animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -288,17 +307,9 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        .modal-text {
-            font-size: 18px;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        }
+        .modal-text { font-size: 18px; margin-bottom: 30px; line-height: 1.5; }
 
-        .modal-actions {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
+        .modal-actions { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
 
         .modal-btn {
             padding: 12px 25px;
@@ -307,10 +318,21 @@
             cursor: pointer;
             border: none;
             min-width: 100px;
+            flex-grow: 1;
         }
 
         .btn-ok { background: var(--accent); color: #000; }
         .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -319,7 +341,7 @@
     <div class="header">
         <div>
             <h1 style="margin:0; font-size: 24px; letter-spacing: 1px;">My Profile</h1>
-            <p style="margin:5px 0 0; color:#64748b; font-size:14px; font-weight: 500;">Manage your account security</p>
+            <p style="margin:5px 0 0; color:var(--text-secondary); font-size:14px; font-weight: 500;">Manage your account security</p>
         </div>
         <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> BACK</a>
     </div>
@@ -329,12 +351,13 @@
             <div class="section-title accent-title" style="justify-content: center;">
                 <i class="fas fa-user-lock"></i> SIGN IN REQUIRED
             </div>
-            <p style="color: #64748b; font-size: 15px; margin-bottom: 30px;">You must be signed in to your account to view your subscription details and manage security settings.</p>
+            <p style="color: var(--text-secondary); font-size: 15px; margin-bottom: 30px;">You must be signed in to your account to view your subscription details and manage security settings.</p>
             <a href="login.html" class="btn btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px; justify-content: center;">
                 <i class="fas fa-sign-in-alt"></i> PROCEED TO SIGN IN
             </a>
         </div>
     </div>
+
     <div id="loggedInContent" style="display: none;">
         <div class="card">
             <div class="section-title">My Subscription</div>
@@ -372,7 +395,7 @@
             <div class="section-title accent-title"><i class="fas fa-user-circle"></i> Account Details</div>
             <div id="userInfo">
                 <p id="userEmail" style="color: #cbd5e1; margin: 5px 0; font-size: 16px;">Loading email...</p>
-                <p id="userUid" style="color: #64748b; font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 1px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; display: inline-block; margin-top: 10px;"></p>
+                <p id="userUid" style="color: var(--text-secondary); font-size: 11px; font-family: 'Courier New', monospace; letter-spacing: 1px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; display: inline-block; margin-top: 10px;"></p>
             </div>
             <div style="margin-top: 25px;">
                 <button class="btn btn-danger" onclick="logoutUser()">
@@ -403,7 +426,12 @@
             <div id="statusMsg" class="status-msg"></div>
         </div>
     </div>
+
+    <div class="footer">
+        © 2026 Pearlpix. All rights reserved.
+    </div>
 </div>
+
 <div class="modal-overlay" id="logoutModal">
     <div class="modal-content">
         <div class="modal-text" id="modalPrompt">Are you sure you want to log out?</div>
@@ -437,7 +465,6 @@
             document.getElementById('userEmail').innerText = "Logged in as: " + user.email;
             document.getElementById('userUid').innerText = "UID: " + user.uid;
 
-            // Fetch Subscription Data from Firestore
             db.collection('users').doc(user.uid).get().then(doc => {
                 if (doc.exists && doc.data().subscription) {
                     const subData = doc.data().subscription;
@@ -448,7 +475,6 @@
                     document.getElementById('invoicePlan').innerText = subData.planName;
                     document.getElementById('invoiceAmount').innerText = subData.amount;
                 } else {
-                    // Fallback if user has no subscription history
                     document.getElementById('currentPlanName').innerText = "No Active Plan";
                     document.getElementById('expireDateText').innerText = "Subscribe to unlock premium features.";
                     document.getElementById('invoiceCard').style.display = 'none';
@@ -504,7 +530,6 @@
         }
     }
 
-    // Modal Controls
     function logoutUser() {
         document.getElementById('logoutModal').style.display = 'flex';
     }
