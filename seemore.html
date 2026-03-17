@@ -103,26 +103,27 @@
             font-family: inherit;
         }
         
-        /* Grid Layout */
+        /* Updated Responsive Grid Layout */
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 12px; 
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+            gap: 15px; 
             justify-items: center; 
         }
 
-        /* Premium Movie Card */
+        /* Updated Premium Movie Card to fit layout */
         .card { 
             position: relative; 
-            width: 100px; 
+            width: 100%; 
+            max-width: 110px;
             cursor: pointer;
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .card:active { transform: scale(0.95); }
 
         .card-img-wrapper {
-            width: 100px; 
-            height: 140px; 
+            width: 100%; 
+            height: 145px; 
             border-radius: 12px; 
             overflow: hidden;
             border: 1px solid var(--border);
@@ -145,7 +146,7 @@
             text-overflow: ellipsis; 
             font-weight: 600; 
             text-align: center; 
-            width: 100px;
+            width: 100%;
             color: #e2e8f0;
         }
 
@@ -174,12 +175,13 @@
         @keyframes shimWave { to { background-position-x: -200%; } }
 
         .shimmer-card {
-            width: 100px;
+            width: 100%;
+            max-width: 110px;
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-        .shimmer-img { height: 140px; border-radius: 12px; }
+        .shimmer-img { height: 145px; border-radius: 12px; }
         .shimmer-text { height: 10px; width: 80%; border-radius: 4px; align-self: center; }
 
         #no-results {
