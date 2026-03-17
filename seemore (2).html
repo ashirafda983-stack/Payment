@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore | Movie Xtream</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --bg: #050505; 
+            --accent: #00e5ff; 
+            --card: #121212; 
+            --border: rgba(0, 229, 255, 0.3);
+            --glass: rgba(18, 18, 18, 0.65);
+        }
+
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-image: radial-gradient(circle at top right, rgba(0, 229, 255, 0.05), transparent 50%);
+            min-height: 100vh;
+        }
+
+        /* Animated Border for Search Bar */
+        @keyframes rotateBorder {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .top-bar { 
+            margin-top: 20px; 
+            margin-bottom: 25px; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--glass);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            color: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+            transition: 0.3s;
+        }
+        .back-btn:active { transform: scale(0.9); }
+
+        .search-container { 
+            flex: 1;
+            position: relative;
+            background: var(--glass); 
+            padding: 2px; 
+            border-radius: 30px; 
+            display: flex; 
+            align-items: center; 
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        /* Light Line Circling the Search Bar */
+        .search-container::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 300%;
+            background: conic-gradient(transparent, transparent, transparent, var(--accent));
+            animation: rotateBorder 4s linear infinite;
+            top: -100%;
+            left: -25%;
+            z-index: 0;
+        }
+
+        .search-inner {
+            position: relative;
+            z-index: 1;
+            background: #0a0a0a;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 28px;
+        }
+
+        .search-inner i { color: var(--accent); margin-right: 10px; font-size: 14px; }
+        .search-inner input { 
+            background: transparent; 
+            border: none; 
+            color: white; 
+            width: 100%; 
+            outline: none; 
+            font-size: 14px; 
+            font-family: inherit;
+        }
+        
+        /* Grid Layout */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+            justify-items: center; 
+        }
+
+        /* Premium Movie Card */
+        .card { 
+            position: relative; 
+            width: 100px; 
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card:active { transform: scale(0.95); }
+
+        .card-img-wrapper {
+            width: 100px; 
+            height: 140px; 
+            border-radius: 12px; 
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--card);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        .card img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            transition: 0.5s;
+        }
+        
+        .card-title { 
+            font-size: 11px; 
+            margin-top: 8px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            font-weight: 600; 
+            text-align: center; 
+            width: 100px;
+            color: #e2e8f0;
+        }
+
+        /* VJ Badge styled like index.html */
+        .vj-badge { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            background: var(--accent); 
+            color: #000; 
+            font-size: 8px; 
+            padding: 3px 8px; 
+            border-radius: 12px 0 12px 0; 
+            font-weight: 900; 
+            text-transform: uppercase;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        /* SHIMMER LOADING EFFECT */
+        .shim-anim {
+            background: linear-gradient(110deg, #181818 8%, #2a2a2a 18%, #181818 33%);
+            background-size: 200% 100%;
+            animation: shimWave 1.5s linear infinite;
+        }
+        @keyframes shimWave { to { background-position-x: -200%; } }
+
+        .shimmer-card {
+            width: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .shimmer-img { height: 140px; border-radius: 12px; }
+        .shimmer-text { height: 10px; width: 80%; border-radius: 4px; align-self: center; }
+
+        #no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 20px;
+            color: #64748b;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="back-btn" onclick="history.back()">
+            <i class="fa-solid fa-arrow-left"></i>
+        </div>
+        <div class="search-container">
+            <div class="search-inner">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-input" placeholder="Search movies..." oninput="filterMovies()">
+            </div>
+        </div>
+    </div>
+
+    <div class="grid" id="grid">
+        <div class="shimmer-card"><div class="shimmer-img shim-anim"></div><div class="shimmer-text shim-anim"></div></div>
+        <div class="shimmer-card"><div class="shimmer-img shim-anim"></div><div class="shimmer-text shim-anim"></div></div>
+        <div class="shimmer-card"><div class="shimmer-img shim-anim"></div><div class="shimmer-text shim-anim"></div></div>
+        <div class="shimmer-card"><div class="shimmer-img shim-anim"></div><div class="shimmer-text shim-anim"></div></div>
+        <div class="shimmer-card"><div class="shimmer-img shim-anim"></div><div class="shimmer-text shim-anim"></div></div>
+        <div class="shimmer-card"><div class="shimmer-img shim-anim"></div><div class="shimmer-text shim-anim"></div></div>
+    </div>
+
+    <div id="no-results">
+        <i class="fa-solid fa-film" style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;"></i>
+        <p>No content found matching that title.</p>
+    </div>
+
+<script>
+    // Logic preserved exactly as original
+    const firebaseConfig = { apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", authDomain: "leoxtream-46cdf.firebaseapp.com", projectId: "leoxtream-46cdf", appId: "1:198227069591:web:a86310e5dc58b845abf7d2" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const cat = new URLSearchParams(window.location.search).get('cat');
+    let localData = [];
+
+    // Category Logic preserved
+    let q = db.collection("movies");
+    if(cat && cat !== 'all') {
+        q = q.where("categories", "array-contains", cat);
+    }
+    
+    q.orderBy("timestamp", "desc").get().then(snap => {
+        localData = snap.docs;
+        render(localData);
+    }).catch(err => {
+        db.collection("movies").orderBy("timestamp", "desc").get().then(snap => {
+            localData = cat === 'all' ? snap.docs : snap.docs.filter(d => d.data().categories?.includes(cat));
+            render(localData);
+        });
+    });
+
+    function render(list) {
+        const grid = document.getElementById('grid');
+        const noResults = document.getElementById('no-results');
+        
+        if(list.length === 0) {
+            grid.innerHTML = '';
+            noResults.style.display = 'block';
+            return;
+        }
+
+        noResults.style.display = 'none';
+        grid.innerHTML = list.map(doc => {
+            const m = doc.data();
+            return `<div class="card" onclick="location.href='details.html?id=${doc.id}'">
+                        <div class="card-img-wrapper">
+                            <img src="${m.poster}" loading="lazy">
+                        </div>
+                        <div class="vj-badge">${m.vj}</div>
+                        <div class="card-title">${m.title}</div>
+                    </div>`;
+        }).join('');
+    }
+
+    function filterMovies() {
+        const term = document.getElementById('search-input').value.toLowerCase();
+        const filtered = localData.filter(doc => doc.data().title.toLowerCase().includes(term));
+        render(filtered);
+    }
+</script>
+</body>
+</html>

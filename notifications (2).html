@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Uploads | LeoXtream</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { 
+            --bg: #050505; 
+            --accent: #00e5ff;
+            --card: #121212;
+            --border: rgba(0, 229, 255, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+        }
+
+        body { 
+            background: var(--bg);
+            color: var(--text-primary); 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0; 
+            padding: 20px;
+            padding-top: 100px; /* Space for the system bar aesthetic */
+            padding-bottom: 100px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* LIGHT LINE ANIMATION KEYFRAMES */
+        @keyframes rotateBorder { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* HEADER & SYSTEM BAR AESTHETIC */
+        .header-nav { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            z-index: 100;
+            background: rgba(18, 18, 18, 0.65);
+            backdrop-filter: blur(15px);
+            padding: 15px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        }
+        
+        .header-nav h2 { 
+            margin: 0; 
+            font-weight: 800; 
+            font-size: 20px; 
+            color: var(--text-primary);
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+            flex-grow: 1;
+            text-align: center;
+        }
+        
+        .back-btn { font-size: 20px; cursor: pointer; color: var(--text-primary); transition: 0.3s; }
+        .back-btn:hover { color: var(--accent); }
+        
+        .header-icons { display: flex; gap: 20px; color: var(--text-primary); font-size: 18px; }
+        .header-icons i { cursor: pointer; transition: 0.3s; }
+        .header-icons i:hover { color: var(--accent); text-shadow: 0 0 15px var(--accent); }
+
+        /* SEARCH CONTAINER */
+        #searchContainer {
+            margin-bottom: 25px;
+        }
+        #searchInput {
+            width: 100%; 
+            padding: 12px 16px; 
+            border-radius: 30px; 
+            border: 1px solid transparent; 
+            background: rgba(0,0,0,0.4); 
+            color: var(--text-primary); 
+            outline: none; 
+            font-size: 14px; 
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        #searchInput:focus {
+            background: rgba(0, 229, 255, 0.05); 
+            border-color: var(--accent); 
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        }
+
+        /* CONTENT CONTAINER */
+        #notifList {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ADVANCED UI CARD WITH LIGHT LINE ANIMATION */
+        .update-card {
+            position: relative;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 2px; /* Border thickness */
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .update-card::before {
+            content: '';
+            position: absolute;
+            width: 250%;
+            height: 500%;
+            background: conic-gradient(transparent 75%, var(--accent) 100%);
+            animation: rotateBorder 4s linear infinite;
+            top: -200%;
+            left: -75%;
+            z-index: 0;
+        }
+
+        .update-card::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: linear-gradient(135deg, rgba(25, 25, 30, 0.95), rgba(10, 10, 15, 0.98));
+            border-radius: 14px;
+            z-index: 1;
+        }
+
+        .update-card:active {
+            transform: scale(0.95);
+        }
+
+        .card-inner {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* POSTER AREA */
+        .poster-container { 
+            width: 80px;
+            height: 110px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-right: 15px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .poster-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* TEXT CONTENT AREA */
+        .card-body { 
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .movie-title { 
+            font-size: 16px; 
+            font-weight: 800; 
+            margin-bottom: 6px; 
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 0 5px rgba(0, 229, 255, 0.3);
+        }
+
+        .movie-overview { 
+            font-size: 12px; 
+            color: var(--text-secondary); 
+            line-height: 1.5; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+
+        /* META DATA (VJ & TIMESTAMP) */
+        .meta-data {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .vj-name {
+            background: var(--accent);
+            color: #050505;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 900;
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4);
+            text-transform: uppercase;
+            font-size: 9px;
+            letter-spacing: 1px;
+        }
+
+        /* NAVIGATION ICON */
+        .nav-chevron {
+            color: var(--accent);
+            font-size: 16px;
+            margin-left: 10px;
+            opacity: 0.8;
+            transition: 0.3s;
+        }
+        
+        .update-card:hover .nav-chevron {
+            transform: translateX(3px);
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        /* SHIMMER LOADING AESTHETIC */
+        #shimmer-loading { display: flex; flex-direction: column; gap: 20px; }
+        .shim-anim { 
+            background: #121212; 
+            background-image: linear-gradient(135deg, #121212 0%, #1a2a35 50%, #121212 100%); 
+            background-size: 250% 100%; 
+            animation: shimmerPulse 1.8s ease-in-out infinite; 
+            border-radius: 16px;
+            box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.05);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        @keyframes shimmerPulse { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+        .shim-card { height: 140px; width: 100%; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-nav">
+        <i class="fa-solid fa-arrow-left back-btn" onclick="history.back()"></i>
+        <h2>New uploads</h2>
+        <div class="header-icons">
+            <i class="fa-solid fa-cast"></i>
+            <i class="fa-solid fa-magnifying-glass" onclick="toggleSearch()"></i>
+        </div>
+    </div>
+
+    <div id="searchContainer" style="display: none;">
+        <input type="text" id="searchInput" placeholder="Search movies or series..." onkeyup="filterList()">
+    </div>
+
+    <div id="notifList">
+        <div id="shimmer-loading">
+            <div class="shim-card shim-anim"></div>
+            <div class="shim-card shim-anim"></div>
+            <div class="shim-card shim-anim"></div>
+        </div>
+    </div>
+
+<script>
+    // Search Functions
+    function toggleSearch() {
+        const searchContainer = document.getElementById('searchContainer');
+        const searchInput = document.getElementById('searchInput');
+        if (searchContainer.style.display === 'none') {
+            searchContainer.style.display = 'block';
+            searchInput.focus();
+        } else {
+            searchContainer.style.display = 'none';
+            searchInput.value = '';
+            filterList(); // Reset the list
+        }
+    }
+
+    function filterList() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.update-card');
+        cards.forEach(card => {
+            const title = card.querySelector('.movie-title').textContent.toLowerCase();
+            if (title.includes(query)) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Configuration synchronized with your index.html and admin.html
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", 
+        authDomain: "leoxtream-46cdf.firebaseapp.com", 
+        projectId: "leoxtream-46cdf", 
+        appId: "1:198227069591:web:a86310e5dc58b845abf7d2" 
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Fetching data using timestamp ordering
+    db.collection("movies").orderBy("timestamp", "desc").limit(20).onSnapshot(snap => {
+        const listContainer = document.getElementById('notifList');
+        
+        // Only clear if we aren't currently searching to prevent search interruption
+        const currentSearch = document.getElementById('searchInput').value;
+        if (!currentSearch) {
+            listContainer.innerHTML = ''; 
+        }
+
+        if (snap.empty) {
+            listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary);">No new uploads found.</div>';
+            return;
+        }
+
+        let newHTML = '';
+        snap.forEach(doc => {
+            const m = doc.data();
+            
+            // Extracting required info: VJ name, Poster, Title, Overview
+            const vjName = m.vj || "LeoXtream"; 
+            const posterUrl = m.poster || m.banner || 'https://via.placeholder.com/80x110?text=No+Poster';
+            const detailPageLink = `details.html?id=${doc.id}`;
+
+            // Format timestamp relative to "Just Now"
+            let dateStr = 'Just Now';
+            if (m.timestamp) {
+                const date = new Date(m.timestamp.seconds * 1000);
+                const now = new Date();
+                const diffSeconds = Math.round((now - date) / 1000);
+                const diffMinutes = Math.round(diffSeconds / 60);
+                const diffHours = Math.round(diffMinutes / 60);
+                const diffDays = Math.round(diffHours / 24);
+
+                if (diffSeconds < 60) {
+                    dateStr = 'Just Now';
+                } else if (diffMinutes < 60) {
+                    dateStr = `${diffMinutes}m ago`;
+                } else if (diffHours < 24) {
+                    dateStr = `${diffHours}h ago`;
+                } else if (diffDays === 1) {
+                    dateStr = 'Yesterday';
+                } else {
+                    dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                }
+            }
+
+            // Overview fallback text
+            const overviewText = m.overview || 'New content is now available on LeoXtream. Watch or download now.';
+
+            // Render the advanced glass UI card
+            newHTML += `
+                <div class="update-card" onclick="location.href='${detailPageLink}'">
+                    <div class="card-inner">
+                        <div class="poster-container">
+                            <img src="${posterUrl}" alt="poster">
+                        </div>
+                        <div class="card-body">
+                            <div class="movie-title">${m.title}</div>
+                            <p class="movie-overview">${overviewText}</p>
+                            <div class="meta-data">
+                                <span class="vj-name">${vjName}</span>
+                                <span class="upload-time">Updated: ${dateStr}</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right nav-chevron"></i>
+                    </div>
+                </div>`;
+        });
+
+        // Update DOM and re-apply search filter if active
+        if (!currentSearch) {
+            listContainer.innerHTML = newHTML;
+        } else {
+            // If user is currently searching during a database snapshot update
+            listContainer.innerHTML = newHTML;
+            filterList(); 
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieXtream | Leo AI</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { 
+            --bg: #050505; 
+            --accent: #00e5ff; 
+            --ai-msg: #121212; 
+            --user-msg: rgba(0, 229, 255, 0.15); 
+            --border: rgba(0, 229, 255, 0.3); 
+        }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        @keyframes rotateBorder { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Header */
+        .chat-header { padding: 15px 20px; background: rgba(5,5,5,0.85); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); }
+        
+        /* Chat Window */
+        #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-size: 14px; line-height: 1.5; position: relative; }
+        .user { align-self: flex-end; background: var(--user-msg); border-bottom-right-radius: 2px; border: 1px solid var(--border); box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.1); }
+        .ai { align-self: flex-start; background: var(--ai-msg); border-bottom-left-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.05); }
+
+        /* Movie Card Design (With Light Line Circling Animation) */
+        .movie-card { background: transparent; border-radius: 16px; overflow: hidden; margin-top: 10px; position: relative; padding: 2px; animation: slideUp 0.4s ease; box-shadow: 0 10px 40px rgba(0,229,255,0.2); }
+        .movie-card::before { content: ''; position: absolute; width: 150%; height: 300%; background: conic-gradient(transparent 75%, var(--accent) 100%); animation: rotateBorder 4s linear infinite; top: -100%; left: -25%; z-index: 0; }
+        .movie-card-inner { background: #0a0a0a; border-radius: 14px; overflow: hidden; position: relative; z-index: 1; height: 100%; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .poster-img { width: 100%; height: 220px; object-fit: cover; border-bottom: 1px solid var(--border); }
+        .card-body { padding: 12px; text-align: center; }
+        .movie-title { font-weight: bold; margin-bottom: 8px; color: var(--accent); text-shadow: 0 0 10px rgba(0,229,255,0.4); }
+        
+        /* Episode Selector Style */
+        .ep-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; max-height: 120px; overflow-y: auto; padding: 5px; }
+        .ep-pill { background: rgba(0, 229, 255, 0.1); border: 1px solid var(--border); color: white; padding: 6px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: 0.2s; }
+        .ep-pill:hover { background: var(--accent); color: #050505; box-shadow: 0 0 10px rgba(0, 229, 255, 0.4); }
+
+        /* Action Buttons */
+        .btn { padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; transition: 0.3s; }
+        .btn-play { background: linear-gradient(45deg, var(--accent), #5cedff); color: #050505; box-shadow: 0 8px 20px rgba(0, 229, 255, 0.4); }
+        .btn-play:active { transform: scale(0.95); box-shadow: 0 4px 10px rgba(0, 229, 255, 0.4); }
+        .btn-request { background: rgba(0, 229, 255, 0.1); color: var(--accent); border: 1px solid var(--accent); }
+        .btn-request:active { transform: scale(0.95); box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); }
+
+        /* Typing Indicator */
+        .typing { display: none; gap: 5px; padding: 10px 20px; }
+        .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: blink 1.4s infinite; box-shadow: 0 0 5px var(--accent); }
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        /* Input Area */
+        .input-area { padding: 15px; background: var(--bg); display: flex; gap: 10px; border-top: 1px solid var(--border); }
+        .input-box { flex: 1; background: #121212; border: 1px solid var(--border); border-radius: 25px; padding: 12px 20px; color: white; outline: none; transition: 0.3s; }
+        .input-box:focus { box-shadow: 0 0 10px rgba(0, 229, 255, 0.3); border-color: var(--accent); }
+        
+        /* Send Button (With Light Line Circling Animation) */
+        .send-btn { position: relative; overflow: hidden; width: 45px; height: 45px; border-radius: 50%; border: none; background: #121212; color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); }
+        .send-btn::before { content: ''; position: absolute; width: 250%; height: 250%; background: conic-gradient(transparent 70%, var(--accent) 100%); animation: rotateBorder 3s linear infinite; z-index: 0; }
+        .send-btn::after { content: ''; position: absolute; inset: 2px; background: #121212; border-radius: 50%; z-index: 1; }
+        .send-btn i { z-index: 2; position: relative; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-header">
+        <i class="fa-solid fa-chevron-left" onclick="history.back()"></i>
+        <div style="text-align: center;">
+            <div style="font-weight: bold;">MovieXtream</div>
+            <div style="font-size: 10px; color: #00e5ff;">● Leo AI Active</div>
+        </div>
+        <i class="fa-solid fa-trash" onclick="clearMemory()"></i>
+    </div>
+
+    <div id="chat-window"></div>
+    <div id="typing" class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" class="input-box" placeholder="Ask Leo anything..." onkeypress="if(event.key==='Enter') processChat()">
+        <button class="send-btn" onclick="processChat()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+
+<script>
+    const FB_CONFIG = { apiKey: "AIzaSyBW6mwoDVbGn0cX7ySV49648jSrLZ_vyEQ", authDomain: "leoxtream-46cdf.firebaseapp.com", projectId: "leoxtream-46cdf", appId: "1:198227069591:web:a86310e5dc58b845abf7d2" };
+    const TMDB_KEY = "0f753f44c20497f81f2652e3eaa291bb";
+    const IMG_URL = "https://image.tmdb.org/t/p/w500";
+    
+    firebase.initializeApp(FB_CONFIG);
+    const db = firebase.firestore();
+    const chatWin = document.getElementById('chat-window');
+    const typing = document.getElementById('typing');
+    let memory = JSON.parse(localStorage.getItem('leo_pro_memory')) || [];
+
+    window.onload = () => {
+        memory.forEach(m => renderMessage(m.text, m.type, m.data, false));
+        if(memory.length === 0) respond("System online. I am Leo, your MovieXtream assistant. What are we watching today?");
+    };
+
+    async function processChat() {
+        const input = document.getElementById('user-input');
+        const rawQuery = input.value.trim();
+        if(!rawQuery) return;
+
+        renderMessage(rawQuery, 'user');
+        memory.push({ text: rawQuery, type: 'user' });
+        localStorage.setItem('leo_pro_memory', JSON.stringify(memory));
+        input.value = '';
+
+        typing.style.display = 'flex';
+        chatWin.scrollTop = chatWin.scrollHeight;
+
+        // --- IMPROVED CLEANING FOR HOUSE TRAP ---
+        const cleanQuery = rawQuery.toLowerCase()
+            .replace(/\b(play|watch|show|movie|series|the|for|me|called)\b/g, "")
+            .trim();
+
+        // 1. SEARCH LOCAL DB FIRST
+        const snap = await db.collection("movies").get();
+        const movies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        // Strict Fuse settings to prevent "House Trap" from hitting "Trap House"
+        const fuse = new Fuse(movies, { keys: ['title'], threshold: 0.3, distance: 10 });
+        const localResult = fuse.search(cleanQuery);
+
+        let movieData = null;
+
+        if (localResult.length > 0) {
+            const m = localResult[0].item;
+            // Check for episodes array specifically for Mobland
+            movieData = { type: 'play', id: m.id, title: m.title, poster: m.poster || '', episodes: m.episodes || null };
+        } else {
+            // 2. GLOBAL TMDB SEARCH
+            const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(cleanQuery)}`);
+            const data = await res.json();
+            if(data.results && data.results.length > 0) {
+                const g = data.results[0];
+                movieData = { type: 'request', title: g.title, poster: IMG_URL + g.poster_path };
+            }
+        }
+
+        const aiRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent("Briefly answer as Leo from MovieXtream. Be helpful and direct. User asked: " + rawQuery)}`);
+        const aiText = await aiRes.text();
+        
+        typing.style.display = 'none';
+        respond(aiText, movieData);
+    }
+
+    function respond(text, data) {
+        memory.push({ text, type: 'ai', data });
+        localStorage.setItem('leo_pro_memory', JSON.stringify(memory));
+        renderMessage(text, 'ai', data, true);
+        speak(text);
+    }
+
+    function renderMessage(text, type, data, animate) {
+        const div = document.createElement('div');
+        div.className = `msg ${type}`;
+        chatWin.appendChild(div);
+
+        if (type === 'ai' && animate) {
+            let i = 0;
+            const interval = setInterval(() => {
+                div.innerHTML = text.substring(0, i);
+                i++;
+                if (i > text.length) {
+                    clearInterval(interval);
+                    if(data) div.appendChild(createCard(data));
+                }
+                chatWin.scrollTop = chatWin.scrollHeight;
+            }, 30);
+        } else {
+            div.innerHTML = text;
+            if(data) div.appendChild(createCard(data));
+        }
+        chatWin.scrollTop = chatWin.scrollHeight;
+    }
+
+    function createCard(data) {
+        const card = document.createElement('div');
+        card.className = 'movie-card';
+        
+        let actionArea = '';
+        if(data.type === 'play') {
+            if(data.episodes && Array.isArray(data.episodes)) {
+                // RENDER EPISODES FOR MOBLAND
+                actionArea = `<div class="ep-container">`;
+                data.episodes.forEach((ep, idx) => {
+                    actionArea += `<button class="ep-pill" onclick="location.href='details.html?id=${data.id}&link=${ep.link}'">EP ${idx + 1}</button>`;
+                });
+                actionArea += `</div>`;
+            } else {
+                actionArea = `<button class="btn btn-play" onclick="location.href='details.html?id=${data.id}'"><i class="fa-solid fa-play"></i> Play Now</button>`;
+            }
+        } else {
+            actionArea = `<button class="btn btn-request" onclick="location.href='request.html?m=${encodeURIComponent(data.title)}'"><i class="fa-solid fa-paper-plane"></i> Request Movie</button>`;
+        }
+
+        card.innerHTML = `
+            <div class="movie-card-inner">
+                <img src="${data.poster}" class="poster-img" onerror="this.src='https://via.placeholder.com/300x450?text=No+Poster'">
+                <div class="card-body">
+                    <div class="movie-title">${data.title}</div>
+                    ${actionArea}
+                </div>
+            </div>
+        `;
+        return card;
+    }
+
+    function clearMemory() { if(confirm("Wipe all history?")) { localStorage.removeItem('leo_pro_memory'); location.reload(); }}
+    function speak(t) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = 1.1; window.speechSynthesis.speak(u); }
+</script>
+</body>
+</html>
