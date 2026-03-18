@@ -838,94 +838,270 @@
     }
 
     // FCM & NOTIFICATIONS
-const messaging = firebase.messaging();
-
-// Request permission and get token
-async function requestToken() {
-    try {
-        const currentToken = await messaging.getToken({
-            vapidKey: 'YOUR_VAPID_KEY' // Replace with your actual VAPID key
-        });
-        if (currentToken) {
-            console.log("FCM Token:", currentToken);
-            saveTokenToFirestore(currentToken);
-        } else {
-            console.log('No registration token available. Request permission to generate one.');
+    async function setupFCM(user) {
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                const token = await messaging.getToken({ 
+                    vapidKey: "BEesDIZ35bDpMz6wlrjhPclJNqXrpCDjF4rNSS3ZVmnXy7ovs1cHjGqq3VFzytzihA8YXFj40scCkkH0n7P2Zxg" 
+                });
+                if (token) {
+                    localStorage.setItem('fcm_token', token);
+                    db.collection("usernames").doc(user.uid).set({ fcmToken: token }, { merge: true });
+                }
+            }
+        } catch (error) {
+            console.error('An error occurred while retrieving token. ', error);
         }
-    } catch (err) {
-        console.log('An error occurred while retrieving token. ', err);
     }
-}
 
-function saveTokenToFirestore(token) {
-    const user = firebase.auth().currentUser;
-    if (user) {
-        db.collection('users').doc(user.uid).set({
-            fcmToken: token,
-            lastTokenUpdate: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+    function showToast(title, body) {
+        const toast = document.getElementById('fcm-toast');
+        if(toast) {
+            document.getElementById('fcm-toast-title').innerText = title;
+            document.getElementById('fcm-toast-body').innerText = body;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
     }
-}
 
-// Handle incoming messages when the app is in the foreground
-messaging.onMessage((payload) => {
-    console.log('Message received. ', payload);
-    showFcmToast(payload.notification.title, payload.notification.body);
+    messaging.onMessage((payload) => {
+        if (payload.notification) {
+            showToast(payload.notification.title, payload.notification.body);
+        }
+    });
     
-    // Update notification badge
-    const badge = document.querySelector('.badge');
-    if (badge) {
-        badge.style.display = 'flex';
-        const currentCount = parseInt(badge.innerText) || 0;
-        badge.innerText = currentCount + 1;
-    }
-});
-
-function showFcmToast(title, body) {
-    const toast = document.getElementById('fcm-toast');
-    const titleEl = toast.querySelector('.fcm-title');
-    const bodyEl = toast.querySelector('.fcm-body');
-    
-    titleEl.innerText = title;
-    bodyEl.innerText = body;
-    
-    toast.classList.add('show');
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 5000);
-}
-
-// Subscription Logic for Series Updates
-async function toggleNotification(seriesId, title, epTo) {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        alert("Please log in to set notifications.");
-        return;
-    }
-
-    const btn = document.getElementById(`notify-${seriesId}`);
-    const userRef = db.collection('users').doc(user.uid).collection('subscriptions').doc(seriesId);
-
-    try {
-        const doc = await userRef.get();
-        if (doc.exists) {
-            await userRef.delete();
-            btn.classList.remove('active');
-            btn.innerText = 'Notify';
-        } else {
-            await userRef.set({
-                seriesId: seriesId,
-                title: title,
-                lastKnownEp: epTo || 1,
-                subscribedAt: firebase.firestore.FieldValue.serverTimestamp()
+    async function checkNotifications(user) {
+        const badge = document.getElementById('notif-badge');
+        const notifyBadge = document.getElementById('notify-badge');
+        const notifPref = localStorage.getItem('notif') !== 'false';
+        if(!notifPref) { 
+            if(badge) badge.style.display = 'none'; 
+            if(notifyBadge) notifyBadge.style.display = 'none';
+            return; 
+        }
+        
+        db.collection('users').doc(user.uid).collection('subscriptions').onSnapshot(subSnap => {
+            let upcomingCount = 0;
+            let processed = 0;
+            if(subSnap.empty && notifyBadge) notifyBadge.style.display = 'none';
+            
+            subSnap.forEach(subDoc => {
+                const subData = subDoc.data();
+                db.collection('upcoming_series').doc(subDoc.id).onSnapshot(seriesSnap => {
+                    processed++;
+                    if (seriesSnap.exists) {
+                        const seriesData = seriesSnap.data();
+                        if (seriesData.epTo > (subData.lastKnownEp || 0)) {
+                            upcomingCount++;
+                        }
+                    }
+                    if(notifyBadge) {
+                        if (upcomingCount > 0 && !sessionStorage.getItem('notify_cleared')) {
+                            notifyBadge.style.display = 'flex';
+                            notifyBadge.innerText = upcomingCount;
+                        } else if (processed === subSnap.size || sessionStorage.getItem('notify_cleared')) {
+                            notifyBadge.style.display = 'none';
+                        }
+                    }
+                });
             });
-            btn.classList.add('active');
-            btn.innerText = 'Notified';
-        }
-    } catch (error) {
-        console.error("Subscription error:", error);
+        });
     }
-}
+
+    // AI RECOMMENDATIONS
+    async function loadAIRecommendations(user) {
+        const aiContainer = document.getElementById('aiRecommendationRows');
+        const historySnap = await db.collection("activity").where("userId", "==", user.uid).orderBy("timestamp", "desc").limit(10).get();
+        if (historySnap.empty) return;
+        let watchedGenres = []; let lastMovieId = null;
+        historySnap.forEach(doc => { watchedGenres.push(...(doc.data().genres || [])); if (!lastMovieId) lastMovieId = doc.data().movieId; });
+        
+        if(lastMovieId) {
+            const lastMovieDoc = allMovies.find(d => d.id === lastMovieId);
+            if (lastMovieDoc) {
+                const genre = lastMovieDoc.data().genre;
+                const similar = allMovies.filter(d => d.data().genre === genre && d.id !== lastMovieId).slice(0, 10);
+                if (similar.length > 0) renderAIRow(`Because you watched ${lastMovieDoc.data().title}`, similar);
+            }
+        }
+        
+        if(watchedGenres.length > 0) {
+            const topGenre = watchedGenres.sort((a,b) => watchedGenres.filter(v => v===a).length - watchedGenres.filter(v => v===b).length).pop();
+            const recommended = allMovies.filter(d => d.data().categories?.includes(topGenre)).slice(0, 10);
+            if (recommended.length > 0) renderAIRow(`Recommended For You: ${topGenre}`, recommended);
+        }
+    }
+
+    function renderAIRow(title, movies) {
+        const container = document.getElementById('aiRecommendationRows');
+        let html = `<div class="section-header"><div class="section-title">${title}</div></div><div class="h-scroll">`;
+        html += movies.map(doc => createMovieCard(doc)).join('');
+        container.innerHTML += html + `</div>`;
+    }
+    // SAVING LOGIC
+    function toggleSave(docId, event) {if(event) { event.preventDefault(); event.stopPropagation(); }
+        let saved = JSON.parse(localStorage.getItem('savedMovies') || "[]");
+        const btn = document.getElementById(`save-btn-${docId}`);
+        if (saved.includes(docId)) { 
+            saved = saved.filter(id => id !== docId); 
+            if(btn) btn.classList.remove('saved'); 
+        } else { 
+            saved.push(docId); 
+            if(btn) btn.classList.add('saved'); 
+        }
+        localStorage.setItem('savedMovies', JSON.stringify(saved));
+        if(document.getElementById('save').classList.contains('active')) renderSaveGrid();
+    }
+
+    function renderSaveGrid() {
+        const savedIds = JSON.parse(localStorage.getItem('savedMovies') || "[]");
+        const savedMovies = allMovies.filter(doc => savedIds.includes(doc.id));
+        renderGrid("saveGrid", savedMovies);
+    }
+
+    // TAB MANAGEMENT
+    function switchTab(id, el) {
+        localStorage.setItem('last_active_tab', id);
+        document.querySelectorAll('.fragment').forEach(f => f.classList.remove('active'));
+        document.querySelectorAll('.drawer-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(id).classList.add('active'); if(el) el.classList.add('active');
+        document.getElementById('mainHeader').style.display = (id === 'home') ? 'flex' : 'none';
+        if(id === 'save') renderSaveGrid();
+        if(id === 'history') renderHistoryGrid();
+        if(id === 'settings') loadPrefs();
+        closeDrawer();
+        window.scrollTo(0,0);
+    }
+    
+    function renderHistoryGrid() {
+        const historyIds = JSON.parse(localStorage.getItem('recentlyPlayed') || "[]");
+        const historyMovies = historyIds.map(id => allMovies.find(d => d.id === id)).filter(Boolean);
+        const grid = document.getElementById('historyGrid'); if(!grid) return;
+        grid.innerHTML = historyMovies.map(doc => createHistoryCard(doc)).join('');
+    }
+
+    function filterHistoryGrid(query) {
+        const historyIds = JSON.parse(localStorage.getItem('recentlyPlayed') || "[]");
+        const historyMovies = historyIds.map(id => allMovies.find(d => d.id === id)).filter(Boolean);
+        const filtered = historyMovies.filter(doc => doc.data().title.toLowerCase().includes(query.toLowerCase()));
+        document.getElementById('historyGrid').innerHTML = filtered.map(doc => createHistoryCard(doc)).join('');
+    }
+
+    function renderSection(title, movies, cat) {
+        let html = `<div class="section-header"><div class="section-title">${title}</div><span class="see-more" onclick="location.href='seemore.html?cat=${cat}'">SEE MORE</span></div><div class="h-scroll">`;
+        html += movies.map(doc => createMovieCard(doc)).join('');
+        document.getElementById('contentSections').innerHTML += html + `</div>`;
+    }
+
+    function renderGrid(id, list) {
+        const grid = document.getElementById(id); if(!grid) return;
+        grid.innerHTML = list.map(doc => createMovieCard(doc)).join('');
+    }
+
+    function savePref(key, value) { localStorage.setItem(key, value); }
+    function loadPrefs() {
+        const langNames = {en: "English", lg: "Luganda", sw: "Swahili"};
+        const langText = document.getElementById('cur-lang-text');
+        if (langText) langText.innerText = langNames[localStorage.getItem('lang')] || "English";
+        const adultFilter = document.getElementById('adult-filter');
+        if (adultFilter) adultFilter.checked = localStorage.getItem('adult-filter') === 'true';
+        const notifPref = document.getElementById('notif-pref');
+        if (notifPref) notifPref.checked = localStorage.getItem('notif') !== 'false';
+    }
+
+    function filterGrid(id, query) {
+        const filtered = allMovies.filter(doc => doc.data().title.toLowerCase().includes(query.toLowerCase()));
+        renderGrid(id, filtered);
+    }
+
+    let bIdx = 0;
+    function startRotation() {
+        const slides = document.querySelectorAll('.banner-slide');
+        const indicators = document.querySelectorAll('.indicator');
+        if(slides.length < 2) return;
+        if(window.bannerInterval) clearInterval(window.bannerInterval);
+        window.bannerInterval = setInterval(() => {
+            if(slides[bIdx]) slides[bIdx].classList.remove('active');
+            if(indicators[bIdx]) indicators[bIdx].classList.remove('active');
+            bIdx = (bIdx + 1) % slides.length;
+            if(slides[bIdx]) slides[bIdx].classList.add('active');
+            if(indicators[bIdx]) indicators[bIdx].classList.add('active');
+        }, 6000);
+    }
+
+    // --- INTEGRATED NOTIFY FUNCTIONS ---
+    function loadUpcomingSeries() {
+        const grid = document.getElementById('upcomingGrid');
+        try {
+            db.collection('upcoming_series').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    grid.innerHTML = '<div class="loader">No upcoming series scheduled yet.</div>';
+                    return;
+                }
+                grid.innerHTML = '';
+                snapshot.forEach(doc => {
+                    grid.appendChild(createSeriesCard(doc.id, doc.data()));
+                });
+            });
+        } catch (error) {
+            console.error("Error fetching series:", error);
+            grid.innerHTML = '<div class="loader">Error loading series. Please try again later.</div>';
+        }
+    }
+
+    function createSeriesCard(id, data) {
+        const div = document.createElement('div');
+        div.className = 'series-card';
+        div.innerHTML = `
+            <img src="${data.poster}" class="card-img-notify">
+            <div class="card-content">
+                <span class="vj-tag">${data.vj || 'Pearlpix'}</span>
+                <h2 class="series-title">${data.title}</h2>
+                <p class="series-overview">${data.overview || 'Stay tuned for more details.'}</p>
+                <span class="episode-range">Updates: Ep ${data.epFrom || 1} - ${data.epTo || '?'}</span>
+                <div class="card-actions">
+                    <button class="btn-play" onclick="location.href='details.html?id=${id}'"><i class="fas fa-play"></i> View</button>
+                    <div class="icon-group">
+                        <span class="notify-text-btn" id="notify-${id}" onclick="toggleNotification('${id}', '${data.title}', ${data.epTo || 1})">Notify</span>
+                        <i class="fas fa-share-alt"></i>
+                    </div>
+                </div>
+            </div>
+        `;
+        return div;
+    }
+
+    async function toggleNotification(seriesId, title, epTo) {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            alert("Please log in to set notifications.");
+            return;
+        }
+
+        const btn = document.getElementById(`notify-${seriesId}`);
+        const userRef = db.collection('users').doc(user.uid).collection('subscriptions').doc(seriesId);
+
+        try {
+            const doc = await userRef.get();
+            if (doc.exists) {
+                await userRef.delete();
+                btn.classList.remove('active');
+                btn.innerText = 'Notify';
+            } else {
+                await userRef.set({
+                    seriesId: seriesId,
+                    title: title,
+                    lastKnownEp: epTo || 1,
+                    subscribedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                btn.classList.add('active');
+                btn.innerText = 'Notified';
+            }
+        } catch (error) {
+            console.error("Subscription error:", error);
+        }
+    }
 </script>
 </body>
-</html>                    
+</html>
