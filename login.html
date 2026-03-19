@@ -227,6 +227,52 @@
         
         .hidden { display: none !important; }
         .form-container { display: flex; flex-direction: column; gap: 5px; position: relative; z-index: 2; }
+
+        .google-btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.4s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            z-index: 2;
+        }
+        .google-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #fff;
+            transform: translateY(-2px);
+        }
+        .google-btn img {
+            width: 20px;
+            height: 20px;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 15px 0 5px 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            position: relative;
+            z-index: 2;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .divider::before { margin-right: .5em; }
+        .divider::after { margin-left: .5em; }
     </style>
 </head>
 <body>
@@ -266,6 +312,11 @@
             </label>
 
             <button class="btn-action" id="main-btn" onclick="handleProcess()" disabled>Register</button>
+            <div class="divider" id="google-divider">OR</div>
+            <button class="google-btn" id="google-btn" onclick="signInWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Continue with Google
+            </button>
         </div>
 
         <div class="footer-links" id="signup-footer">
@@ -447,6 +498,59 @@
             showNotify(e.message, "error");
             btn.disabled = false;
             btn.innerText = currentMode === 'signup' ? "Register" : (currentMode === 'login' ? "Sign In" : "Send Reset Email");
+        }
+    }
+
+    // --- NON-DESTRUCTIVE ADDITIONS ---
+
+    // 1. Monkey-patch switchMode to hide Google button during Password Reset without altering original function text
+    const originalSwitchMode = switchMode;
+    switchMode = function(mode) {
+        originalSwitchMode(mode);
+        const gBtn = document.getElementById('google-btn');
+        const gDiv = document.getElementById('google-divider');
+        if(mode === 'reset') {
+            if(gBtn) gBtn.classList.add('hidden');
+            if(gDiv) gDiv.classList.add('hidden');
+        } else {
+            if(gBtn) gBtn.classList.remove('hidden');
+            if(gDiv) gDiv.classList.remove('hidden');
+        }
+    };
+
+    // 2. Google Authentication Logic
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+    async function signInWithGoogle() {
+        try {
+            const res = await auth.signInWithPopup(googleProvider);
+            
+            // Replicate your storage wipe logic precisely
+            localStorage.removeItem('continueWatching');
+            localStorage.removeItem('recentlyPlayed');
+            localStorage.removeItem('savedMovies');
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('resume_')) localStorage.removeItem(key);
+            });
+            localStorage.setItem('lastUserUid', res.user.uid);
+
+            // Create a record in Firestore if it's their first time signing in with Google
+            const userDoc = await db.collection("users").doc(res.user.uid).get();
+            if (!userDoc.exists) {
+                // Auto-generate a username based on their Google account
+                let baseUsername = res.user.displayName ? res.user.displayName.replace(/\s+/g, '').toLowerCase() : res.user.email.split('@')[0];
+                let finalUsername = baseUsername + Math.floor(Math.random() * 1000); // Prevent duplicates
+                
+                await db.collection("users").doc(res.user.uid).set({
+                    username: finalUsername, email: res.user.email, created: new Date()
+                });
+                await db.collection("usernames").doc(finalUsername).set({ uid: res.user.uid });
+            }
+
+            showNotify("Google Access granted.");
+            setTimeout(() => window.location.href = "index.html", 1000);
+        } catch(error) {
+            showNotify(error.message, "error");
         }
     }
     </script>
