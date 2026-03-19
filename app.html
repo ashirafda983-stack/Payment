@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pearlpix | Get Apps</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #050505;
+            --accent: #ff2a5f;
+            --accent-glow: rgba(255, 42, 95, 0.6);
+            --glass-bg: rgba(18, 18, 18, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        html, body {
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(255, 42, 95, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 229, 255, 0.05), transparent 25%);
+            margin: 0;
+            padding: 0;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            padding: 20px 25px;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .back-btn {
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 20px;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            color: var(--accent);
+            transform: translateX(-5px);
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        /* MAIN CONTAINER */
+        .container {
+            padding: 40px 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .page-intro {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .page-intro h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+        .page-intro p {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        /* GLASSMORPHISM APP CARDS */
+        .app-card {
+            width: 100%;
+            max-width: 500px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+        
+        .app-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 42, 95, 0.4);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 0 20px rgba(255, 42, 95, 0.05);
+        }
+
+        /* CYBER LIGHT-LINE ANIMATION */
+        .light-line {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scanline 4s linear infinite;
+        }
+        .app-card:nth-child(2) .light-line {
+            background: linear-gradient(90deg, transparent, #00e5ff, transparent);
+            animation-delay: 2s;
+        }
+
+        @keyframes scanline {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        /* APP ICON & DETAILS */
+        .app-icon-wrapper {
+            width: 90px;
+            height: 90px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #1e1e1e, #121212);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--accent);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .app-card:nth-child(2) .app-icon-wrapper {
+            color: #00e5ff;
+        }
+
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin: 0 0 8px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        .app-desc {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            text-align: center;
+            margin: 0 0 25px;
+            line-height: 1.5;
+        }
+
+        /* GOOGLE PLAY BUTTON */
+        .download-btn {
+            background: #fff;
+            color: #000;
+            text-decoration: none;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+        }
+        .download-btn i {
+            font-size: 22px;
+            background: linear-gradient(45deg, #34A853, #FBBC05, #EA4335, #4285F4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .download-btn:hover {
+            transform: scale(1.02);
+            background: #f8f9fa;
+            box-shadow: 0 8px 25px rgba(255,255,255,0.2);
+        }
+        .download-btn:active {
+            transform: scale(0.98);
+        }
+
+        .store-text {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            line-height: 1.1;
+        }
+        .store-sub {
+            font-size: 10px;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+        }
+        .store-main {
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+                justify-content: center;
+                align-items: stretch;
+            }
+            .app-card {
+                width: 45%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2 class="header-title">Download Center</h2>
+    </header>
+
+    <div class="container">
+        <div class="page-intro" style="width: 100%; text-align: center;">
+            <h1>Mobile Experience</h1>
+            <p>Get our official native applications for the best streaming performance.</p>
+        </div>
+
+        <div class="app-card">
+            <div class="light-line"></div>
+            <div class="app-icon-wrapper">
+                <i class="fa-solid fa-circle-play"></i>
+            </div>
+            <h3 class="app-title">Pearlpix App</h3>
+            <p class="app-desc">The ultimate platform for premium VJ translated movies and series. Stream directly on your Android device.</p>
+            <a href="https://play.google.com/store/apps/details?id=com.uganda.movieshub" target="_blank" class="download-btn">
+                <i class="fa-brands fa-google-play"></i>
+                <div class="store-text">
+                    <span class="store-sub">Get it on</span>
+                    <span class="store-main">Google Play</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="app-card">
+            <div class="light-line"></div>
+            <div class="app-icon-wrapper">
+                <i class="fa-solid fa-film"></i>
+            </div>
+            <h3 class="app-title">MovieXtream</h3>
+            <p class="app-desc">Your dedicated streaming zone. Access an expansive library of HD content with fast, seamless playback.</p>
+            <a href="https://play.google.com/store/apps/details?id=com.streamzoneapp.com" target="_blank" class="download-btn">
+                <i class="fa-brands fa-google-play"></i>
+                <div class="store-text">
+                    <span class="store-sub">Get it on</span>
+                    <span class="store-main">Google Play</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
