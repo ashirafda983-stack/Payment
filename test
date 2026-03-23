@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Video Generator</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 600px; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; }
+        button { padding: 10px 20px; cursor: pointer; }
+        #videoPlayer { width: 100%; margin-top: 20px; display: none; }
+    </style>
+</head>
+<body>
+    <h2>Advanced Video Generator</h2>
+    
+    <input type="text" id="promptInput" placeholder="A cinematic shot of a futuristic city at sunset..." />
+    <button onclick="generateVideo()">Generate</button>
+
+    <div id="status" style="margin-top: 15px; font-weight: bold;"></div>
+    <video id="videoPlayer" controls></video>
+
+    <script>
+        async function generateVideo() {
+            const prompt = document.getElementById('promptInput').value;
+            const statusText = document.getElementById('status');
+            
+            statusText.innerText = "Generating video... This might take a minute!";
+            
+            // Send the prompt to your Node.js backend
+            const response = await fetch('/generate-video', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: prompt })
+            });
+            
+            const data = await response.json();
+            
+            // Once your backend finishes polling and returns the actual video file URL:
+            // document.getElementById('videoPlayer').src = data.videoUrl;
+            // document.getElementById('videoPlayer').style.display = 'block';
+            statusText.innerText = "Check backend for operation status!";
+        }
+    </script>
+</body>
+</html>
+
