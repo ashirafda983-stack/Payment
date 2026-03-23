@@ -11,6 +11,7 @@
             --neon-accent: #00f3ff;
             --text-main: #e2e8f0;
             --bg-dark: #050b14;
+            --error-red: #ff4757;
         }
 
         * {
@@ -54,13 +55,19 @@
 
         /* Left Panel - Control Center */
         .control-center {
-            width: 350px;
+            width: 380px;
             flex-shrink: 0;
         }
 
         .header {
             padding: 1.5rem;
             border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -72,6 +79,29 @@
             letter-spacing: 2px;
             color: var(--neon-accent);
             text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+
+        /* API Key Config Area */
+        .config-area {
+            padding: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .config-area input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: var(--text-main);
+            padding: 0.75rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+            font-family: monospace;
+        }
+
+        .config-area input:focus {
+            border-color: var(--neon-accent);
         }
 
         .chat-history {
@@ -90,6 +120,7 @@
             border-left: 3px solid transparent;
             font-size: 0.9rem;
             line-height: 1.5;
+            word-wrap: break-word;
         }
 
         .message.user {
@@ -98,6 +129,11 @@
 
         .message.ai {
             border-left-color: var(--neon-accent);
+        }
+        
+        .message.error {
+            border-left-color: var(--error-red);
+            color: #ffcccc;
         }
 
         .input-area {
@@ -155,6 +191,8 @@
         /* Right Panel - Live Render */
         .render-engine {
             flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .tabs {
@@ -182,13 +220,15 @@
         .view-area {
             flex-grow: 1;
             position: relative;
+            display: flex;
         }
 
         iframe {
             width: 100%;
             height: 100%;
             border: none;
-            background: #fff; /* White background for the generated web app */
+            background: #fff;
+            flex-grow: 1;
         }
 
         pre {
@@ -201,6 +241,7 @@
             color: #c9d1d9;
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.9rem;
+            flex-grow: 1;
         }
 
         /* Loading Overlay */
@@ -234,16 +275,22 @@
     <div class="workspace">
         <div class="panel control-center">
             <div class="header">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-accent)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                <h1>AI Builder</h1>
+                <div class="header-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-accent)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    <h1>AI Builder</h1>
+                </div>
             </div>
             
+            <div class="config-area">
+                <input type="password" id="api-key-input" placeholder="Paste Gemini API Key here..." autocomplete="off">
+            </div>
+
             <div class="chat-history" id="chat-history">
-                <div class="message ai">System initialized. Awaiting parameters to generate application architecture.</div>
+                <div class="message ai">System initialized. Awaiting API Key and parameters to generate application architecture.</div>
             </div>
 
             <div class="input-area">
-                <textarea id="prompt-input" placeholder="Describe the web app you want to build..."></textarea>
+                <textarea id="prompt-input" placeholder="Describe the web app you want to build... (e.g., 'A pomodoro timer with dark mode')"></textarea>
                 <button id="generate-btn" onclick="generateApp()">Execute Build</button>
             </div>
         </div>
@@ -257,20 +304,17 @@
             <div class="view-area">
                 <div class="loader-overlay" id="loader">
                     <div class="spinner"></div>
-                    <div style="color: var(--neon-accent); font-family: monospace;">COMPILING GENERATIVE CODE...</div>
+                    <div style="color: var(--neon-accent); font-family: monospace;" id="loader-text">COMPILING GENERATIVE CODE...</div>
                 </div>
-                <iframe id="preview-frame"></iframe>
+                <iframe id="preview-frame" sandbox="allow-scripts allow-same-origin"></iframe>
                 <pre id="code-view"><code></code></pre>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        // Replace this with your actual Gemini API Key securely when deploying
-        const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE'; 
-        
         // --- DOM ELEMENTS ---
+        const apiKeyInput = document.getElementById('api-key-input');
         const promptInput = document.getElementById('prompt-input');
         const generateBtn = document.getElementById('generate-btn');
         const chatHistory = document.getElementById('chat-history');
@@ -280,75 +324,103 @@
 
         // --- CORE LOGIC ---
         async function generateApp() {
+            const apiKey = apiKeyInput.value.trim();
             const prompt = promptInput.value.trim();
-            if (!prompt) return;
+            
+            // Validation
+            if (!apiKey) {
+                addMessage("Authentication Error: Please provide a valid Gemini API Key in the config bar above.", "error");
+                return;
+            }
+            if (!prompt) {
+                addMessage("Input Error: Please describe the application you want to build.", "error");
+                return;
+            }
 
-            // Update UI
+            // Update UI State
             addMessage(prompt, 'user');
             promptInput.value = '';
             generateBtn.disabled = true;
             loader.style.display = 'flex';
 
             try {
-                // Constructing the request to Gemini API
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
+                // Using gemini-1.5-pro for complex coding tasks
+                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{
                             parts: [{
-                                text: `You are an expert web developer system. 
-                                Build a complete, responsive, single-file HTML web application based on the following request: "${prompt}".
-                                RULES:
-                                1. Output ONLY raw HTML code. Do not use markdown code blocks (\`\`\`html).
+                                text: `You are an expert, automated web developer system. 
+                                Build a complete, responsive, single-file HTML web application based on this exact user request: "${prompt}".
+                                
+                                STRICT SYSTEM RULES:
+                                1. Output ONLY the raw, functional HTML code. 
                                 2. Include all CSS within <style> tags in the <head>.
                                 3. Include all JavaScript within <script> tags at the end of the <body>.
-                                4. Ensure the design is modern and functional.
-                                5. Do not include any conversational text before or after the code.`
+                                4. Ensure the design is modern, interactive, and fully functional out of the box.
+                                5. DO NOT include greetings, explanations, or any conversational text. ONLY output the code.`
                             }]
                         }],
                         generationConfig: {
-                            temperature: 0.2, // Low temperature for precise code generation
+                            temperature: 0.2, 
                         }
                     })
                 });
 
                 const data = await response.json();
                 
-                if (data.error) {
-                    throw new Error(data.error.message);
+                if (!response.ok) {
+                    throw new Error(data.error?.message || "Failed to connect to Gemini API.");
                 }
 
-                let generatedCode = data.candidates[0].content.parts[0].text;
+                const rawContent = data.candidates[0].content.parts[0].text;
+                const cleanCode = extractHTML(rawContent);
 
-                // Strip markdown formatting if the AI accidentally includes it despite instructions
-                generatedCode = generatedCode.replace(/^```html\n?/i, '').replace(/^```\n?/i, '').replace(/```$/i, '').trim();
-
-                // Inject code into Iframe for live preview
-                const iframeDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
-                iframeDoc.open();
-                iframeDoc.write(generatedCode);
-                iframeDoc.close();
-
-                // Update Code View
-                codeView.querySelector('code').textContent = generatedCode;
-
-                addMessage("Build successful. Code rendered in preview pane.", 'ai');
+                renderApp(cleanCode);
+                addMessage("Build successful. Code compiled and rendered in preview pane.", 'ai');
 
             } catch (error) {
                 console.error('Generation Error:', error);
-                addMessage(`System Error: ${error.message}`, 'ai');
+                addMessage(`System Error: ${error.message}`, 'error');
             } finally {
                 generateBtn.disabled = false;
                 loader.style.display = 'none';
-                chatHistory.scrollTop = chatHistory.scrollHeight;
             }
         }
 
-        // --- UTILS ---
-        function addMessage(text, sender) {
+        // --- UTILITIES ---
+
+        // Extract code from Markdown formatting if the AI includes it
+        function extractHTML(text) {
+            // Check for ```html ... ``` block
+            const htmlMatch = text.match(/```html\s*([\s\S]*?)\s*```/i);
+            if (htmlMatch) return htmlMatch[1];
+            
+            // Check for generic ``` ... ``` block
+            const genericMatch = text.match(/```\s*([\s\S]*?)\s*```/i);
+            if (genericMatch) return genericMatch[1];
+            
+            // If no markdown formatting is found, return the raw text
+            return text.trim();
+        }
+
+        function renderApp(htmlCode) {
+            // Update Iframe
+            const iframeDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(htmlCode);
+            iframeDoc.close();
+
+            // Update Code View (escaping HTML for safe display)
+            codeView.querySelector('code').textContent = htmlCode;
+        }
+
+        function addMessage(text, type) {
             const div = document.createElement('div');
-            div.className = `message ${sender}`;
+            div.className = `message ${type}`;
             div.textContent = text;
             chatHistory.appendChild(div);
             chatHistory.scrollTop = chatHistory.scrollHeight;
