@@ -2,63 +2,286 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Noor Quest | Barakah Tracker</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noor Quest - Barakah Tracker</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0a0b1e;
+            --neon-cyan: #00f2ff;
+            --neon-purple: #bc13fe;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #1a1b3a, #0a0b1e);
+            color: white;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .user-stats {
+            background: var(--glass-bg);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+        }
+
+        h1 { 
+            font-weight: 800; 
+            font-size: 1.5rem; 
+            letter-spacing: 1px; 
+            color: var(--neon-cyan);
+            margin: 0;
+        }
+
+        .impact-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            height: 12px;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan));
+            box-shadow: 0 0 15px var(--neon-cyan);
+            transition: width 0.5s ease;
+        }
+
+        .task-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .counter-display {
+            font-size: 4rem;
+            font-weight: 800;
+            text-align: center;
+            margin: 10px 0;
+            text-shadow: 0 0 20px var(--neon-purple);
+        }
+
+        .tap-area {
+            width: 100%;
+            height: 150px;
+            border-radius: 15px;
+            border: 2px dashed var(--glass-border);
+            background: rgba(255,255,255,0.03);
+            color: var(--neon-cyan);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .tap-area:active { 
+            background: rgba(0, 242, 255, 0.1); 
+            transform: scale(0.98); 
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button.control-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .reward-btn {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%) !important;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .complete-btn {
+            width: 100%;
+            background: var(--neon-cyan);
+            color: var(--bg-dark);
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 800;
+            margin-top: 10px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background: rgba(10, 11, 30, 0.9);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .bottom-nav button {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .bottom-nav button.active { 
+            color: var(--neon-cyan); 
+            font-weight: bold; 
+        }
+    </style>
 </head>
 <body>
 
     <div class="app-container">
-        <header class="glass-header">
+        <header>
+            <h1>Noor Quest</h1>
             <div class="user-stats">
-                <span class="label">Barakah Points</span>
-                <span id="user-points" class="neon-text-gold">1,250</span>
-            </div>
-            <div class="global-progress-container">
-                <div class="progress-label">Global Goal: Water Well ($500)</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 65%;"></div>
-                </div>
+                <span id="barakah-points">✨ 0 Barakah</span>
             </div>
         </header>
 
-        <main id="main-content">
-            <section id="view-home" class="view active">
-                <h2 class="section-title">Daily Deeds</h2>
-                <div class="task-card glass">
-                    <div class="task-info">
-                        <h3>Fajr Prayer</h3>
-                        <p>+50 Points</p>
-                    </div>
-                    <button class="check-btn" onclick="completeTask(this, 50)">✓</button>
-                </div>
-                <div class="task-card glass">
-                    <div class="task-info">
-                        <h3>Morning Dhikr</h3>
-                        <p>+30 Points</p>
-                    </div>
-                    <button class="check-btn" onclick="completeTask(this, 30)">✓</button>
-                </div>
-            </section>
+        <section class="impact-card">
+            <h3 style="margin-top:0">Global Charity Goal</h3>
+            <div class="progress-container">
+                <div class="progress-bar" id="global-progress" style="width: 65%;"></div>
+            </div>
+            <p style="margin-bottom:0; font-size: 0.85rem; opacity: 0.8;">$6,500 / $10,000 Raised for the Needy</p>
+        </section>
 
-            <section id="view-dhikr" class="view">
-                <div class="counter-container glass-circle" onclick="incrementDhikr()">
-                    <span class="dhikr-label">SubhanAllah</span>
-                    <h1 id="dhikr-count">0</h1>
-                    <span class="tap-hint">Tap to Count</span>
+        <main class="task-grid">
+            <div class="glass-card dhikr-section">
+                <h4 style="margin:0">Dhikr Counter</h4>
+                <div class="counter-display" id="counter">0</div>
+                <button class="tap-area" id="tap-btn">TAP TO PRAY</button>
+                <div class="btn-group">
+                    <button class="control-btn" onclick="resetCounter()">Reset</button>
+                    <button class="reward-btn" onclick="triggerAd('rewarded')">Watch & Donate</button>
                 </div>
-                <button class="reset-btn" onclick="resetDhikr()">Reset</button>
-            </section>
+            </div>
+
+            <div class="glass-card">
+                <h4 style="margin:0">Daily Sunnah</h4>
+                <p id="sunnah-text" style="opacity:0.8; margin: 15px 0;">Read Surah Al-Kahf on Friday.</p>
+                <button class="complete-btn" onclick="addPoints(50)">I Did This (+50)</button>
+            </div>
         </main>
 
-        <nav class="bottom-nav glass">
-            <button class="nav-item active" onclick="switchView('view-home')">Quest</button>
-            <button class="nav-item" onclick="switchView('view-dhikr')">Dhikr</button>
-            <button class="nav-item" onclick="switchView('view-impact')">Impact</button>
+        <nav class="bottom-nav">
+            <button class="active"><span>Quest</span></button>
+            <button><span>Impact</span></button>
+            <button><span>Zakat</span></button>
+            <button><span>Profile</span></button>
         </nav>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        let count = 0;
+        let points = 0;
+
+        const counterDisplay = document.getElementById('counter');
+        const pointsDisplay = document.getElementById('barakah-points');
+        const tapBtn = document.getElementById('tap-btn');
+
+        // Dhikr Counter Logic
+        tapBtn.addEventListener('click', () => {
+            count++;
+            counterDisplay.innerText = count;
+            
+            // Sketchware Haptic Bridge
+            if(window.SketchwareInterface) {
+                window.SketchwareInterface.vibrate(40);
+            }
+
+            // Auto-trigger Interstitial at 33
+            if (count % 33 === 0) {
+                triggerAd("interstitial");
+            }
+        });
+
+        function resetCounter() {
+            count = 0;
+            counterDisplay.innerText = count;
+        }
+
+        function addPoints(val) {
+            points += val;
+            pointsDisplay.innerText = `✨ ${points} Barakah`;
+            
+            if(window.SketchwareInterface) {
+                window.SketchwareInterface.showMessage("Barakah Points Earned!");
+            }
+        }
+
+        // Sketchware & AdMob Bridge
+        function triggerAd(type) {
+            if (window.SketchwareInterface) {
+                // Calls the Java method in Sketchware
+                window.SketchwareInterface.showAd(type);
+            } else {
+                // Fallback for browser testing
+                console.log("Ad Triggered: " + type);
+                alert("This would trigger an Ad in the app. Points added for testing.");
+                addPoints(100);
+            }
+        }
+    </script>
 </body>
 </html>
