@@ -2,52 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quran Premium</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #0a0a0c; color: #fff; font-family: 'Inter', sans-serif; }
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-        }
-        .quran-text { font-family: 'Amiri', serif; font-size: 1.8rem; line-height: 3rem; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Noor Quest | Barakah Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
-<body class="p-4">
-    <div id="app" class="max-w-md mx-auto">
-        <header class="mb-6">
-            <h1 class="text-2xl font-bold text-cyan-400">Quran Premium</h1>
-            <p class="text-gray-400 text-sm">Juz & Yasarna Explorer</p>
+<body>
+
+    <div class="app-container">
+        <header class="glass-header">
+            <div class="user-stats">
+                <span class="label">Barakah Points</span>
+                <span id="user-points" class="neon-text-gold">1,250</span>
+            </div>
+            <div class="global-progress-container">
+                <div class="progress-label">Global Goal: Water Well ($500)</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 65%;"></div>
+                </div>
+            </div>
         </header>
 
-        <div class="flex gap-2 mb-6">
-            <button onclick="loadJuz(1)" class="glass px-4 py-2 flex-1">Juz 1</button>
-            <button onclick="loadYasarna()" class="glass px-4 py-2 flex-1">Yasarna</button>
-        </div>
+        <main id="main-content">
+            <section id="view-home" class="view active">
+                <h2 class="section-title">Daily Deeds</h2>
+                <div class="task-card glass">
+                    <div class="task-info">
+                        <h3>Fajr Prayer</h3>
+                        <p>+50 Points</p>
+                    </div>
+                    <button class="check-btn" onclick="completeTask(this, 50)">✓</button>
+                </div>
+                <div class="task-card glass">
+                    <div class="task-info">
+                        <h3>Morning Dhikr</h3>
+                        <p>+30 Points</p>
+                    </div>
+                    <button class="check-btn" onclick="completeTask(this, 30)">✓</button>
+                </div>
+            </section>
 
-        <div id="content" class="glass p-6 min-h-[400px] text-right dir-rtl">
-            <p class="text-gray-500 text-center mt-20">Select a section to begin</p>
-        </div>
+            <section id="view-dhikr" class="view">
+                <div class="counter-container glass-circle" onclick="incrementDhikr()">
+                    <span class="dhikr-label">SubhanAllah</span>
+                    <h1 id="dhikr-count">0</h1>
+                    <span class="tap-hint">Tap to Count</span>
+                </div>
+                <button class="reset-btn" onclick="resetDhikr()">Reset</button>
+            </section>
+        </main>
+
+        <nav class="bottom-nav glass">
+            <button class="nav-item active" onclick="switchView('view-home')">Quest</button>
+            <button class="nav-item" onclick="switchView('view-dhikr')">Dhikr</button>
+            <button class="nav-item" onclick="switchView('view-impact')">Impact</button>
+        </nav>
     </div>
 
-    <script>
-        async function loadJuz(id) {
-            const content = document.getElementById('content');
-            content.innerHTML = "Loading...";
-            // Calling the Al Quran Cloud API
-            const res = await fetch(`https://api.alquran.cloud/v1/juz/${id}/quran-uthmani`);
-            const data = await res.json();
-            
-            let html = '';
-            data.data.ayahs.forEach(ayah => {
-                html += `<p class="quran-text mb-4">${ayah.text} <span class="text-cyan-500 text-sm">[${ayah.numberInSurah}]</span></p>`;
-            });
-            content.innerHTML = html;
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
-
