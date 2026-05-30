@@ -2,451 +2,175 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noor Quest - Charity Companion</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vora Creator Studio</title>
     <style>
-        /* --- THEME & DESIGN VARIABLES --- */
+        /* Native Android Material Design + Dark Mode */
         :root {
-            --bg-dark: #080914;
-            --neon-cyan: #00f2ff;
-            --neon-purple: #9d00ff;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #ffffff;
-            --text-muted: #8a8d9e;
+            --android-bg: #121212;
+            --android-surface: #1E1E1E;
+            --android-primary: #BB86FC; /* Material Dark Purple */
+            --android-secondary: #03DAC6; /* Material Teal */
+            --text-primary: #FFFFFF;
+            --text-secondary: #B3B3B3;
+            --ripple-color: rgba(255, 255, 255, 0.1);
         }
 
-        .light-mode {
-            --bg-dark: #f0f2f5;
-            --neon-cyan: #00b3bc;
-            --neon-purple: #7a00c2;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.1);
-            --text-main: #1a1a2e;
-            --text-muted: #5a5d7a;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Roboto, 'Segoe UI', sans-serif;
+            user-select: none; /* Prevents text selection like a real app */
+            -webkit-tap-highlight-color: transparent; /* Removes web click highlights */
         }
 
-        /* --- GLOBAL STYLES --- */
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        
         body {
-            margin: 0; padding: 0;
-            background: var(--bg-dark);
-            background-image: radial-gradient(circle at top right, rgba(157, 0, 255, 0.15), transparent 40%),
-                              radial-gradient(circle at bottom left, rgba(0, 242, 255, 0.1), transparent 40%);
-            color: var(--text-main);
-            overflow-x: hidden;
-            transition: background 0.5s ease, color 0.5s ease;
+            background-color: var(--android-bg);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .app-container { padding: 20px; padding-bottom: 90px; }
-
+        /* Native Android App Bar (Header) */
         header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;
-            animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            background-color: var(--android-surface);
+            height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: 0 4px 5px rgba(0,0,0,0.2);
+            z-index: 10;
         }
 
-        h1 { font-weight: 800; font-size: 1.8rem; margin: 0; 
-             background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
-             -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        .stat-badge {
-            background: var(--glass-bg); padding: 8px 16px; border-radius: 30px;
-            border: 1px solid var(--glass-border); font-weight: 600; font-size: 0.9rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
+        .app-title {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 0.15px;
         }
 
-        /* --- GLASS COMPONENTS --- */
-        .glass-card {
-            background: var(--glass-bg); backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border); border-radius: 24px;
-            padding: 24px; margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            transition: transform 0.3s ease;
+        /* Fragment Container */
+        .fragment-container {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background-color: var(--android-bg);
         }
 
-        /* --- FRAGMENT LOGIC --- */
-        .fragment { display: none; opacity: 0; transform: translateY(15px); transition: all 0.4s ease; }
-        .fragment.active { display: block; opacity: 1; transform: translateY(0); }
-
-        /* --- SPECIFIC UI ELEMENTS --- */
-        .counter-display {
-            font-size: 4.5rem; font-weight: 800; text-align: center; margin: 15px 0;
-            text-shadow: 0 0 25px rgba(157, 0, 255, 0.5);
-            font-variant-numeric: tabular-nums;
+        /* Native Material Bottom Navigation */
+        nav {
+            background-color: var(--android-surface);
+            height: 80px; /* Accounts for Android gesture navigation bar */
+            display: flex;
+            justify-content: space-around;
+            padding-top: 8px;
+            padding-bottom: 16px;
+            box-shadow: 0 -1px 5px rgba(0,0,0,0.2);
+            z-index: 10;
         }
 
-        .tap-btn {
-            width: 100%; height: 160px; border-radius: 20px;
-            border: 2px dashed var(--neon-cyan); background: rgba(0, 242, 255, 0.05);
-            color: var(--neon-cyan); font-size: 1.4rem; font-weight: 800;
-            cursor: pointer; outline: none; transition: all 0.1s;
-            text-transform: uppercase; letter-spacing: 2px;
-        }
-        .tap-btn:active { background: rgba(0, 242, 255, 0.2); transform: scale(0.96); }
-
-        .btn-row { display: flex; gap: 12px; margin-top: 15px; }
-        
-        button.primary {
-            flex: 1; padding: 16px; border: none; border-radius: 14px;
-            background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan));
-            color: white; font-weight: 700; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 242, 255, 0.3); transition: 0.3s;
-        }
-        button.primary:active { transform: scale(0.95); }
-        
-        button.secondary {
-            flex: 1; padding: 16px; border: none; border-radius: 14px;
-            background: var(--glass-bg); color: var(--text-main); font-weight: 600;
-            border: 1px solid var(--glass-border); cursor: pointer;
-        }
-
-        /* --- PROGRESS BAR --- */
-        .progress-track {
-            background: rgba(255, 255, 255, 0.05); height: 14px; border-radius: 10px;
-            margin: 20px 0 10px; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-        }
-        .progress-fill {
-            height: 100%; width: 0%; border-radius: 10px;
-            background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan));
-            box-shadow: 0 0 20px var(--neon-cyan); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* --- INPUTS & SETTINGS --- */
-        input[type="number"] {
-            width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--glass-border);
-            background: rgba(0,0,0,0.2); color: var(--text-main); font-size: 1.1rem;
-            margin-bottom: 15px; outline: none;
-        }
-        input[type="number"]:focus { border-color: var(--neon-cyan); }
-        
-        .setting-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 0; border-bottom: 1px solid var(--glass-border);
-        }
-        
-        /* Toggle Switch */
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--neon-cyan); }
-        input:checked + .slider:before { transform: translateX(24px); }
-
-        /* --- BOTTOM NAVIGATION --- */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 75px;
-            background: rgba(8, 9, 20, 0.85); backdrop-filter: blur(25px);
-            display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid var(--glass-border); z-index: 100;
-        }
-        .light-mode .bottom-nav { background: rgba(255, 255, 255, 0.85); }
-        
         .nav-item {
-            background: none; border: none; color: var(--text-muted); font-size: 0.75rem;
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            cursor: pointer; transition: 0.3s; width: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 64px;
+            height: 48px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
         }
-        .nav-item i { font-size: 1.6rem; transition: 0.3s; }
-        .nav-item.active { color: var(--neon-cyan); }
-        .nav-item.active i { transform: translateY(-4px); filter: drop-shadow(0 0 8px var(--neon-cyan)); }
 
-        /* Animations */
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-item.active {
+            color: var(--android-primary);
+        }
+
+        .nav-item.active .icon-container {
+            background-color: rgba(187, 134, 252, 0.15); /* Active pill background */
+            border-radius: 16px;
+            padding: 4px 16px;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Android Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            background-color: var(--ripple-color);
+        }
+
+        @keyframes ripple-animation {
+            to { transform: scale(4); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <header>
-            <h1>Noor Quest</h1>
-            <div class="stat-badge" id="barakah-display">✨ 0 Barakah</div>
-        </header>
+    <header>
+        <div class="app-title">Vora Studio</div>
+    </header>
 
-        <div id="frag-quest" class="fragment active">
-            <div class="glass-card">
-                <h3 style="margin-top:0; color: var(--text-muted); font-weight:600;">Dhikr Counter</h3>
-                <div class="counter-display" id="dhikr-counter">0</div>
-                <button class="tap-btn" id="dhikr-btn">TAP TO PRAY</button>
-                <div class="btn-row">
-                    <button class="secondary" onclick="resetDhikr()">Reset</button>
-                    <button class="primary" onclick="triggerAdForCharity('rewarded')">Watch & Donate</button>
-                </div>
-            </div>
+    <iframe id="fragment-frame" class="fragment-container" src="script.html"></iframe>
 
-            <div class="glass-card">
-                <h3 style="margin-top:0; color: var(--text-muted); font-weight:600;">Daily Sunnah</h3>
-                <p style="font-size: 1.1rem; margin: 10px 0 20px;">Read Surah Al-Kahf</p>
-                <button class="primary" style="width:100%" onclick="completeSunnah(this)">Mark as Done (+50)</button>
-            </div>
+    <nav>
+        <div class="nav-item active" onclick="switchFragment(event, 'script.html', this)">
+            <div class="icon-container"><div class="nav-icon">✍️</div></div>
+            <div class="nav-label">Scripts</div>
         </div>
-
-        <div id="frag-impact" class="fragment">
-            <div class="glass-card" style="text-align: center;">
-                <i class="ph ph-globe-hemisphere-east" style="font-size: 3rem; color: var(--neon-cyan);"></i>
-                <h2 style="margin: 10px 0;">Global Water Well</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Your ad views directly fund this project via automated donations.</p>
-                
-                <div class="progress-track">
-                    <div class="progress-fill" id="global-progress"></div>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; font-weight: 600;">
-                    <span id="raised-amount">$0</span>
-                    <span id="goal-amount" style="color: var(--text-muted);">$10,000</span>
-                </div>
-            </div>
-
-            <div class="glass-card">
-                <h3 style="margin-top:0;">Recent Activity</h3>
-                <div style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
-                    <p>🟢 User from Uganda donated 1 meal via Ad.</p>
-                    <p>🟢 User from UAE completed 100 Dhikr sets.</p>
-                    <p>🟢 Global Goal reached 65% today.</p>
-                </div>
-            </div>
+        <div class="nav-item" onclick="switchFragment(event, 'tags.html', this)">
+            <div class="icon-container"><div class="nav-icon">#️⃣</div></div>
+            <div class="nav-label">Tags</div>
         </div>
-
-        <div id="frag-zakat" class="fragment">
-            <div class="glass-card">
-                <h2 style="margin-top:0;">Zakat Calculator</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Enter your eligible wealth held for over one lunar year.</p>
-                
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--neon-purple);">Cash & Savings (USD)</label>
-                <input type="number" id="zakat-input" placeholder="e.g. 5000" oninput="calculateZakat()">
-                
-                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-top: 20px; border-left: 4px solid var(--neon-cyan);">
-                    <span style="font-size: 0.9rem; color: var(--text-muted);">Obligatory Zakat (2.5%)</span>
-                    <div id="zakat-result" style="font-size: 2rem; font-weight: 800; color: var(--neon-cyan);">$0.00</div>
-                </div>
-            </div>
+        <div class="nav-item" onclick="switchFragment(event, 'bio.html', this)">
+            <div class="icon-container"><div class="nav-icon">🔗</div></div>
+            <div class="nav-label">Bio Link</div>
         </div>
+    </nav>
 
-        <div id="frag-settings" class="fragment">
-            <div class="glass-card">
-                <h2 style="margin-top:0;">App Preferences</h2>
-                
-                <div class="setting-item">
-                    <span>Haptic Feedback (Vibration)</span>
-                    <label class="switch">
-                        <input type="checkbox" id="haptic-toggle" checked onchange="saveSettings()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
+    <script>
+        function switchFragment(event, filename, element) {
+            // Android Ripple Effect Logic
+            createRipple(event, element);
 
-                <div class="setting-item">
-                    <span>Light Mode</span>
-                    <label class="switch">
-                        <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="setting-item" style="border-bottom: none; flex-direction: column; align-items: flex-start;">
-                    <span style="margin-bottom: 10px;">Account ID</span>
-                    <code style="background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; width: 100%; font-size: 0.8rem;">USR-84F4E15B709</code>
-                </div>
-            </div>
-        </div>
-
-        <nav class="bottom-nav">
-            <button class="nav-item active" onclick="switchTab('quest', this)">
-                <i class="ph ph-hands-praying"></i>
-                <span>Quest</span>
-            </button>
-            <button class="nav-item" onclick="switchTab('impact', this)">
-                <i class="ph ph-chart-line-up"></i>
-                <span>Impact</span>
-            </button>
-            <button class="nav-item" onclick="switchTab('zakat', this)">
-                <i class="ph ph-calculator"></i>
-                <span>Zakat</span>
-            </button>
-            <button class="nav-item" onclick="switchTab('settings', this)">
-                <i class="ph ph-gear"></i>
-                <span>Settings</span>
-            </button>
-        </nav>
-    </div>
-
-    <script type="module">
-        // 1. Firebase Configuration & Initialization
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAP1iOP8dyqRIMhUGnpXV_31zrFcwdm808",
-            authDomain: "vora-9f8ff.firebaseapp.com",
-            projectId: "vora-9f8ff",
-            storageBucket: "vora-9f8ff.firebasestorage.app",
-            messagingSenderId: "415597104702",
-            appId: "1:415597104702:web:84f4e15b7091cbde30cb6f",
-            measurementId: "G-L301E1SS4N"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getFirestore(app);
-
-        // 2. Global State Variables
-        let localBarakah = parseInt(localStorage.getItem("barakahPoints")) || 0;
-        let dhikrCount = 0;
-        
-        // Setup initial UI
-        document.getElementById("barakah-display").innerText = `✨ ${localBarakah} Barakah`;
-        loadSettings();
-
-        // 3. Navigation Logic (Attached to window for inline HTML onclick)
-        window.switchTab = function(tabId, element) {
-            // Hide all fragments
-            document.querySelectorAll('.fragment').forEach(frag => {
-                frag.classList.remove('active');
-            });
-            // Show target fragment
-            document.getElementById(`frag-${tabId}`).classList.add('active');
-            
-            // Update Nav UI
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.classList.remove('active');
+            // Update Active UI State
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
             });
             element.classList.add('active');
-        };
 
-        // 4. Dhikr Logic
-        const dhikrBtn = document.getElementById("dhikr-btn");
-        const dhikrDisplay = document.getElementById("dhikr-counter");
-        
-        dhikrBtn.addEventListener("click", () => {
-            dhikrCount++;
-            dhikrDisplay.innerText = dhikrCount;
-            
-            // Trigger Haptics if enabled in settings
-            const hapticEnabled = document.getElementById("haptic-toggle").checked;
-            if(hapticEnabled && window.SketchwareInterface) {
-                window.SketchwareInterface.vibrate(40);
-            }
-
-            // Auto-trigger Interstitial at 33 for monetization
-            if (dhikrCount > 0 && dhikrCount % 33 === 0) {
-                window.triggerAdForCharity("interstitial");
-            }
-        });
-
-        window.resetDhikr = function() {
-            dhikrCount = 0;
-            dhikrDisplay.innerText = dhikrCount;
-        };
-
-        // 5. App & Sketchware Bridge Logic
-        window.addBarakah = function(amount) {
-            localBarakah += amount;
-            localStorage.setItem("barakahPoints", localBarakah);
-            document.getElementById("barakah-display").innerText = `✨ ${localBarakah} Barakah`;
-            if(window.SketchwareInterface) window.SketchwareInterface.showMessage("Barakah Added!");
-        };
-
-        window.completeSunnah = function(btnElement) {
-            window.addBarakah(50);
-            btnElement.innerText = "Completed! ✅";
-            btnElement.disabled = true;
-            btnElement.style.background = "var(--glass-bg)";
-            btnElement.style.color = "var(--text-muted)";
-        };
-
-        window.triggerAdForCharity = async function(adType) {
-            if (window.SketchwareInterface) {
-                window.SketchwareInterface.showAd(adType);
-            } else {
-                console.log("Sketchware not detected. Simulating " + adType + " Ad.");
-                alert("Simulated Ad Viewed. Adding to global charity pool.");
-                window.addBarakah(100);
-            }
-
-            // Push increment to Firebase Firestore
-            try {
-                const statsRef = doc(db, "charity", "globalStats");
-                await updateDoc(statsRef, {
-                    raised: increment(0.05) // Assuming $0.05 revenue per ad
-                });
-            } catch (error) {
-                console.error("Firebase update failed. Note: Requires Firestore database setup.", error);
-            }
-        };
-
-        // 6. Zakat Calculator Logic
-        window.calculateZakat = function() {
-            const wealth = parseFloat(document.getElementById('zakat-input').value) || 0;
-            const zakat = wealth * 0.025; // 2.5%
-            document.getElementById('zakat-result').innerText = `$${zakat.toFixed(2)}`;
-        };
-
-        // 7. Settings & Theme Logic
-        window.toggleTheme = function() {
-            const isLight = document.getElementById('theme-toggle').checked;
-            if(isLight) {
-                document.body.classList.add('light-mode');
-                localStorage.setItem('theme', 'light');
-            } else {
-                document.body.classList.remove('light-mode');
-                localStorage.setItem('theme', 'dark');
-            }
-        };
-
-        window.saveSettings = function() {
-            const haptic = document.getElementById('haptic-toggle').checked;
-            localStorage.setItem('haptic', haptic);
-        };
-
-                function loadSettings() {
-            const isLight = localStorage.getItem('theme') === 'light';
-            const themeToggle = document.getElementById('theme-toggle');
-            if (themeToggle) {
-                themeToggle.checked = isLight;
-            }
-            if(isLight) document.body.classList.add('light-mode');
-
-            const haptic = localStorage.getItem('haptic');
-            const hapticToggle = document.getElementById('haptic-toggle');
-            if(haptic !== null && hapticToggle) {
-                hapticToggle.checked = (haptic === 'true');
-            }
+            // Swap the iframe source to load the new HTML fragment
+            document.getElementById('fragment-frame').src = filename;
         }
 
-        // 8. Real-time Firebase Listener for Impact Tab
-        // This ensures that when any user in the world watches an ad, 
-        // the progress bar updates live for everyone.
-        try {
-            // Path: charity collection -> globalStats document
-            const statsRef = doc(db, "charity", "globalStats");
-            
-            onSnapshot(statsRef, (doc) => {
-                if (doc.exists()) {
-                    const data = doc.data();
-                    const goal = data.goal || 10000;
-                    const raised = data.raised || 0;
-                    
-                    // Calculate percentage for the CSS width
-                    const percentage = Math.min((raised / goal) * 100, 100);
-                    
-                    // Update UI elements
-                    document.getElementById("raised-amount").innerText = `$${raised.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                    document.getElementById("goal-amount").innerText = `$${goal.toLocaleString()}`;
-                    document.getElementById("global-progress").style.width = `${percentage}%`;
-                }
-            }, (error) => {
-                console.warn("Firestore Listener: Waiting for 'charity/globalStats' document...", error.message);
-                
-                // Static Fallback for preview/development if DB is not yet ready
-                document.getElementById("raised-amount").innerText = `$6,540.00`;
-                document.getElementById("global-progress").style.width = `65%`;
-            });
-        } catch (e) {
-            console.error("Firebase Initialization Error:", e);
+        function createRipple(event, element) {
+            const circle = document.createElement('span');
+            const diameter = Math.max(element.clientWidth, element.clientHeight);
+            const radius = diameter / 2;
+
+            const rect = element.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add('ripple');
+
+            const ripple = element.querySelector('.ripple');
+            if (ripple) { ripple.remove(); }
+            element.appendChild(circle);
         }
     </script>
 </body>
